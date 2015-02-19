@@ -29,14 +29,18 @@ module SimpleParams
     def clear
       super
       @nested_attributes.each do |attribute|
-        fetch_nested_attribute(attribute).errors.clear
+        if fetch_nested_attribute(attribute).present?
+          fetch_nested_attribute(attribute).errors.clear
+        end
       end
     end
 
     def empty?
       super &&
       @nested_attributes.all? do |attribute|
-        fetch_nested_attribute(attribute).errors.empty?
+        if fetch_nested_attribute(attribute).present?
+          fetch_nested_attribute(attribute).errors.empty?
+        end
       end
     end
     alias_method :blank?, :empty? 
@@ -54,7 +58,9 @@ module SimpleParams
     def values
       messages.values +
       @nested_attributes.map do |attribute|
-        fetch_nested_attribute(attribute).errors.values
+        if fetch_nested_attribute(attribute).present?
+          fetch_nested_attribute(attribute).errors.values
+        end
       end
     end
 

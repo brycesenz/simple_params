@@ -1,10 +1,11 @@
-require "active_model"
+# require "active_model"
 require "virtus"
 
 module SimpleParams
   class Params
     include Virtus.model
     include ActiveModel::Validations
+    include SimpleParams::Validations
 
     class << self
       def optional_param(name, opts={}, &block)
@@ -55,10 +56,10 @@ module SimpleParams
       end
     end
 
-    def initialize(params={}, parent_params = self)
-      @errors = SimpleParams::Errors.new(self)
-      @parent_params = parent_params
-      set_nested_params
+    def initialize(params={})
+      @nested_params = self.class.nested_params.keys
+      @errors = SimpleParams::Errors.new(self, @nested_params)
+      set_nested_params_accessors
       set_accessors(params)
       set_defaults
     end
@@ -75,28 +76,10 @@ module SimpleParams
       end
     end
 
-    def run_validations! #:nodoc:
-      run_callbacks :validate
-      self.class.nested_params.each do |key, value|
-        send("#{key}").run_validations!
-      end
-      errors.empty?
-    end
-
-    def validate!
-      unless valid?
-        raise StandardError, errors.to_s
-      end
-    end
-
     private
-    def set_nested_params
+    def set_nested_params_accessors
       self.class.nested_params.each do |key, value|
-        # This is true
         send("#{key}=", value)          
-
-        # These are the WIP lines
-        errors.set("#{key}".to_sym, ActiveModel::Errors.new(send("#{key}"))) 
       end
     end
 

@@ -11,23 +11,6 @@ class DummyParams < SimpleParams::Params
     optional_param :zip_code
     optional_param :state, default: "North Carolina"
   end
-
-  # required_param :customer_profile_id
-  # optional_param :name_on_account, default: lambda { |params| 
-  #   [params.billing_address.first_name, params.billing_address.last_name].join(" ")
-  # }
-  # required_param :routing_number
-  # required_param :account_number
-  # nested_param :billing_address do
-  #   required_param :first_name
-  #   required_param :last_name
-  #   optional_param :company
-  #   required_param :street
-  #   required_param :city
-  #   required_param :state
-  #   required_param :zip_code
-  #   optional_param :country, default: "United States of America"
-  # end
 end
 
 describe SimpleParams::Params do
@@ -134,8 +117,6 @@ describe SimpleParams::Params do
     describe "nested params", nested: true do
       it "validates presence of required param", failing: true do
         params.should_not be_valid
-        params.address.should_not be_valid
-        puts "errors = #{params.address.errors.inspect}"
         params.errors[:address][:street].should eq(["can't be blank"])
       end
 
