@@ -2,10 +2,10 @@ require 'spec_helper'
 
 class DummyParams < SimpleParams::Params
   required_param :name
-  optional_param :age
+  optional_param :age, type: Integer
   optional_param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
 
-  nested_param :address do
+  nested_hash :address do
     required_param :street
     required_param :city, validations: { length: { in: 4..40 } }
     optional_param :zip_code
@@ -27,8 +27,8 @@ describe SimpleParams::Params do
     it "has getter and setter methods for optional param" do
       params.should respond_to(:age)
       params.name.should be_nil
-      params.name = 19
-      params.name.should eq(19)
+      params.age = 19
+      params.age.should eq(19)
     end
 
     describe "nested params", nested: true do
@@ -44,7 +44,7 @@ describe SimpleParams::Params do
         params.address.zip_code.should be_nil
         params.address.zip_code = "20165"
         params.address.zip_code.should eq("20165")
-      end      
+      end
     end
   end
 
@@ -115,7 +115,7 @@ describe SimpleParams::Params do
     end
 
     describe "nested params", nested: true do
-      it "validates presence of required param", failing: true do
+      it "validates presence of required param" do
         params.should_not be_valid
         params.errors[:address][:street].should eq(["can't be blank"])
       end

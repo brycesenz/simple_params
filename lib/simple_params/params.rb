@@ -8,62 +8,67 @@ module SimpleParams
     include SimpleParams::Validations
 
     class << self
-      def optional_param(name, opts={}, &block)
-        opts.merge!(optional: true)
-        param(name, opts, &block)
+      def optional_param(name, opts={})
+        param(name, opts.merge(optional: true))
       end
 
-      def param(name, opts={}, &block)
-        @defaults ||= {}
-
-        attr_accessor name
-        default = opts[:default]
-
-        if default.present?
-          @defaults[name.to_sym] = default
-        end
-
-        validations = opts[:validations] || {}
-        unless opts[:optional]
-          validations.merge!(presence: true)
-        end
-        unless validations.empty?
-          validates name, validations
-        end
+      def param(name, opts={})
+        define_attribute(name, opts)
+        add_validations(name, opts)
       end
       alias_method :required_param, :param
 
-      def nested_param(name, opts={}, &block)
-        param(name, opts={}, &block)
-        nested_class = Class.new(Params)
-        name_function = Proc.new {
-          def self.model_name
-            ActiveModel::Name.new(self, nil, "temp")
-          end
-        }
-        nested_class.class_eval(&name_function)
-        nested_class.class_eval(&block)
-        @nested_params ||= {}
-        @nested_params[name.to_sym] = nested_class.new
+      def nested_hash(name, opts={}, &block)
+        attr_accessor name
+        nested_class = define_nested_class(&block)
+        @nested_hashes ||= {}
+        @nested_hashes[name.to_sym] = nested_class
+      end
+      alias_method :nested_param, :nested_hash
+      alias_method :nested, :nested_hash
+
+      def nested_hashes
+        @nested_hashes || {}
       end
 
-      def defaults
-        @defaults || {}
+      private
+      def define_attribute(name, opts = {})
+        type = opts[:type] || String
+        default = opts[:default]
+        if default.present?
+          attribute name, type, default: default
+        else
+          attribute name, type
+        end
       end
 
-      def nested_params
-        @nested_params || {}
+      def add_validations(name, opts = {})
+        validations = opts[:validations] || {}
+        validations.merge!(presence: true) unless opts[:optional]
+        validates name, validations unless validations.empty?
+      end
+
+      def define_nested_class(&block)
+        Class.new(Params).tap do |klass|
+          name_function = Proc.new {
+            def self.model_name
+              ActiveModel::Name.new(self, nil, "temp")
+            end
+          }
+          klass.class_eval(&name_function)
+          klass.class_eval(&block)
+        end
       end
     end
 
     def initialize(params={})
-      @nested_params = self.class.nested_params.keys
+      @nested_params = nested_hashes.keys
       @errors = SimpleParams::Errors.new(self, @nested_params)
-      set_nested_params_accessors
+      initialize_nested_classes
       set_accessors(params)
-      set_defaults
     end
 
+    protected
     def set_accessors(params={})
       params.each do |key, value| 
         self.class.send(:attr_accessor, key)
@@ -77,26 +82,13 @@ module SimpleParams
     end
 
     private
-    def set_nested_params_accessors
-      self.class.nested_params.each do |key, value|
-        send("#{key}=", value)          
-      end
+    def nested_hashes
+      self.class.nested_hashes
     end
 
-    def set_defaults
-      self.class.defaults.each do |key, default_value|
-        value = if default_value.is_a?(Proc)
-          if default_value.arity == 0
-            default_value.call
-          else
-            default_value.call(self)
-          end
-        else
-          default_value
-        end
-        if send("#{key}").nil?
-          send("#{key}=", value)
-        end
+    def initialize_nested_classes
+      nested_hashes.each do |key, klass|
+        send("#{key}=", klass.new)
       end
     end
   end

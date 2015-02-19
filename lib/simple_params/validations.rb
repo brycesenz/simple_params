@@ -4,12 +4,19 @@ module SimpleParams
   module Validations
     extend ActiveModel::Validations
 
-    def run_validations! #:nodoc:
-      run_callbacks :validate
-      self.class.nested_params.each do |key, value|
-        send("#{key}").run_validations!
+    # Overriding #valid? to provide recursive validating of 
+    #  nested params
+    def valid?(context = nil)
+      current_context, self.validation_context = validation_context, context
+      errors.clear
+      run_validations!
+      nested_hashes.each do |key, value|
+        nested_class = send("#{key}") 
+        nested_class.valid?
       end
       errors.empty?
+    ensure
+      self.validation_context = current_context
     end
 
     def validate!
