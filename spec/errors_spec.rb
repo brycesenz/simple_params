@@ -4,14 +4,14 @@ describe SimpleParams::Errors do
   class Person
     extend ActiveModel::Naming
     def initialize
-      @errors = SimpleParams::Errors.new(self, [dog])
+      @errors = SimpleParams::Errors.new(self, ["dog"])
     end
 
     attr_accessor :name, :age
     attr_reader   :errors
 
     def dog
-      Dog.new
+      @dog ||= Dog.new
     end
 
     def read_attribute_for_validation(attr)
@@ -105,24 +105,99 @@ describe SimpleParams::Errors do
     end
   end
 
+  describe "setting and getting nested error model" do
+    it "can access error model" do
+      person = Person.new
+      dog = person.dog
+      dog_errors = dog.errors
+      person.errors[:dog].should eq(dog_errors)
+    end
+
+    it "can add to nested errors through []" do
+      person = Person.new
+      person.errors[:dog] = 'should not be nil'
+      person.dog.errors[:base].should eq(['should not be nil'])
+    end
+
+    it "can add to nested errors through add" do
+      person = Person.new
+      person.errors.add(:dog, 'should not be nil')
+      person.dog.errors[:base].should eq(['should not be nil'])
+    end
+
+    it "can add multiple errors to nested errors through []" do
+      person = Person.new
+      person.errors[:dog] = 'should not be nil'
+      person.errors[:dog] = 'must be cute'
+      person.dog.errors[:base].should eq(['should not be nil', 'must be cute'])
+    end
+
+    it "can add multiple errors to nested errors through add" do
+      person = Person.new
+      person.errors.add(:dog, 'should not be nil')
+      person.errors.add(:dog, 'must be cute')
+      person.dog.errors[:base].should eq(['should not be nil', 'must be cute'])
+    end
+
+    it "can add individual errors to nested attributes through []" do
+      person = Person.new
+      person.errors[:dog][:breed] = 'should not be nil'
+      person.dog.errors[:breed].should eq(['should not be nil'])
+    end
+
+    it "can add individual errors to nested attributes through  add" do
+      person = Person.new
+      person.errors[:dog].add(:breed, 'should not be nil')
+      person.dog.errors[:breed].should eq(['should not be nil'])
+    end
+  end
+
   describe "#clear" do
     it "clears errors" do
       person = Person.new
       person.errors[:name] = 'should not be nil'
       person.errors[:name].should eq(["should not be nil"])
-      person.errors.count.should eq(1)
       person.errors.clear
       person.errors.should be_empty
-    end    
+    end
+
+    it "clears nested errors" do
+      person = Person.new
+      person.errors[:name] = 'should not be nil'
+      person.errors[:name].should eq(["should not be nil"])
+      person.errors[:dog] = 'should not be nil'
+      person.dog.errors[:base].should eq(['should not be nil'])
+      person.errors.clear
+      person.errors.should be_empty
+      person.dog.errors.should be_empty
+    end
   end
 
   describe "#empty?, #blank?, and #include?" do
-    it "detecting whether there are errors with empty?, blank?, include?" do
+    it "is empty without any errors" do
       person = Person.new
-      person.errors[:foo]
       person.errors.should be_empty
       person.errors.should be_blank
-      person.errors.should_not have_key(:foo)
+      person.errors.should_not have_key(:name)
+      person.errors.should_not have_key(:dog)
+    end
+
+    it "is not empty with errors" do
+      person = Person.new
+      person.errors[:name] = 'should not be nil'
+      person.errors.should_not be_empty
+      person.errors.should_not be_blank
+      person.errors.should have_key(:name)
+      person.errors.should_not have_key(:dog)
+    end
+
+    it "is not empty with nested errors" do
+      person = Person.new
+      person.errors[:dog] = 'should not be nil'
+      person.errors.should_not be_empty
+      person.errors.should_not be_blank
+      person.errors.should_not have_key(:name)
+      person.errors.should have_key(:dog)
     end
   end
 
@@ -177,6 +252,12 @@ describe SimpleParams::Errors do
       person.errors.add(:name, "can not be blank")
       person.errors.size.should eq(1)
     end
+
+    it "includes nested attributes in size count" do
+      person = Person.new
+      person.errors.add(:dog, "can not be blank")
+      person.errors.size.should eq(1)
+    end
   end
 
   describe "#to_a" do
@@ -186,6 +267,10 @@ describe SimpleParams::Errors do
       person.errors.add(:name, "can not be nil")
       person.errors.to_a.should eq(["name can not be blank", "name can not be nil"])
     end
+
+    it "handles nested attributes" do
+      skip
+    end
   end
 
   describe "#to_hash" do
@@ -193,6 +278,10 @@ describe SimpleParams::Errors do
       person = Person.new
       person.errors.add(:name, "can not be blank")
       person.errors.to_hash.should eq({ name: ["can not be blank"] })
+    end
+
+    it "handles nested attributes" do
+      skip
     end
   end
 
@@ -210,6 +299,10 @@ describe SimpleParams::Errors do
       person.errors[:name].should eq(["can not be nil"])
       person.errors.as_json(full_messages: true).should eq({ name: ["name can not be nil"] })
     end    
+
+    it "handles nested attributes" do
+      skip
+    end
   end
 
   describe "#full_messages" do
@@ -249,6 +342,10 @@ describe SimpleParams::Errors do
       person = Person.new
       person.errors.full_message(:name, "can not be blank").should eq("name can not be blank")
       person.errors.full_message(:name_test, "can not be blank").should eq("name_test can not be blank")
+    end
+
+    it "handles nested attributes" do
+      skip
     end
   end
 
