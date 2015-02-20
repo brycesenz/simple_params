@@ -269,7 +269,10 @@ describe SimpleParams::Errors do
     end
 
     it "handles nested attributes" do
-      skip
+      person = Person.new
+      person.errors.add(:name, "can not be blank")
+      person.dog.errors.add(:breed, "can not be nil")
+      person.errors.to_a.should eq(["name can not be blank", "dog breed can not be nil"])
     end
   end
 
@@ -281,7 +284,31 @@ describe SimpleParams::Errors do
     end
 
     it "handles nested attributes" do
-      skip
+      person = Person.new
+      person.errors.add(:name, "can not be blank")
+      person.dog.errors.add(:breed, "can not be nil")
+      person.errors.to_hash.should eq({ 
+        name: ["can not be blank"],
+        dog: {
+          breed: ["can not be nil"]
+        }
+      })
+    end
+
+    it "handles nested attributes with base errors" do
+      person = Person.new
+      person.errors.add(:base, :invalid)
+      person.errors.add(:name, "can not be blank")
+      person.dog.errors.add(:base, :invalid)
+      person.dog.errors.add(:breed, "can not be nil")
+      person.errors.to_hash.should eq({ 
+        base: ["is invalid"],
+        name: ["can not be blank"],
+        dog: {
+          base: ["is invalid"],
+          breed: ["can not be nil"]
+        }
+      })
     end
   end
 
@@ -300,8 +327,28 @@ describe SimpleParams::Errors do
       person.errors.as_json(full_messages: true).should eq({ name: ["name can not be nil"] })
     end    
 
-    it "handles nested attributes" do
-      skip
+    it "handles nested attributes without full_messages" do
+      person = Person.new
+      person.errors[:name] = 'can not be nil'
+      person.dog.errors[:breed] = 'is invalid'
+      person.errors.as_json.should eq({ 
+        name: ["can not be nil"],
+        dog: {
+          breed: ["is invalid"]
+        }
+      })
+    end
+
+    it "handles nested attributes with full_messages" do
+      person = Person.new
+      person.errors[:name] = 'can not be nil'
+      person.dog.errors[:breed] = 'is invalid'
+      person.errors.as_json(full_messages: true).should eq({ 
+        name: ["name can not be nil"],
+        dog: {
+          breed: ["breed is invalid"]
+        }
+      })
     end
   end
 
@@ -342,10 +389,6 @@ describe SimpleParams::Errors do
       person = Person.new
       person.errors.full_message(:name, "can not be blank").should eq("name can not be blank")
       person.errors.full_message(:name_test, "can not be blank").should eq("name_test can not be blank")
-    end
-
-    it "handles nested attributes" do
-      skip
     end
   end
 

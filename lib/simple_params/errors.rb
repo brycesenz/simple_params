@@ -64,7 +64,46 @@ module SimpleParams
       end
     end
 
+    def full_messages
+      parent_messages = map { |attribute, message| full_message(attribute, message) }
+      nested_messages = @nested_attributes.map do |attribute|
+        if fetch_nested_attribute(attribute)
+          messages = fetch_nested_attribute(attribute).errors.full_messages
+          messages.map do |message|
+            "#{attribute} " + message
+          end
+        end
+      end
+      (parent_messages + nested_messages).flatten
+    end
+
+    def to_hash(full_messages = false)
+      messages = super(full_messages)
+      nested_messages = @nested_attributes.map do |attribute|
+        errors = nested_error_messages(attribute, full_messages)
+        unless errors.empty?
+          messages.merge!(attribute.to_sym => errors)
+        end
+      end
+      messages
+    end
+
     private
+    def nested_error_messages(attribute, full_messages = false)
+      if fetch_nested_attribute(attribute)
+        if full_messages
+          errors = fetch_nested_attribute(attribute).errors
+          errors.messages.each_with_object({}) do |(attribute, array), messages|
+            messages[attribute] = array.map { |message| errors.full_message(attribute, message) }
+          end
+        else
+          fetch_nested_attribute(attribute).errors.messages.dup
+        end
+      else
+        {}
+      end
+    end
+
     def add_error_to_attribute(attribute, error)
       if fetch_nested_attribute(attribute)
         fetch_nested_attribute(attribute).errors[:base] = error
@@ -87,8 +126,8 @@ module SimpleParams
       end
     end
 
-    def symbolize_nested(nested_attributes)
-      nested_attributes.map { |x| x.to_sym }
+    def symbolize_nested(nested)
+      nested.map { |x| x.to_sym }
     end
   end
 end
