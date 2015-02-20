@@ -3,17 +3,25 @@ require 'spec_helper'
 class DummyParams < SimpleParams::Params
   string_param :name
   integer_param :age, optional: true
-  date_param :birthdate, optional: true
-  datetime_param :current_time, optional: true
-  decimal_param :amount, optional: true
-  float_param :fraction, optional: true
+  string_param :first_initial, default: lambda { |params, param| params.name[0] if params.name.present? }
+  decimal_param :amount, optional: true, default: 0.10
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
 
   nested_hash :address do
     string_param :street
     string_param :city, validations: { length: { in: 4..40 } }
-    string_param :zip_code, optional: true
+    string_param :zip_code, optional: true, validations: { length: { in: 5..9 } }
     param :state, default: "North Carolina"
+  end
+
+  nested_hash :phone do
+    boolean_param :cell_phone, default: true
+    string_param :phone_number, validations: { length: { in: 7..10 } }
+    string_param :area_code, default: lambda { |params, param| 
+      if params.phone_number.present? 
+        params.phone_number[0..2] 
+      end
+    }
   end
 end
 
@@ -95,6 +103,112 @@ describe SimpleParams::Params do
         params[:address][:city] = "Asheville"
         params[:address][:city].should eq("Asheville")
         params["address"]["city"].should eq("Asheville")
+      end
+    end
+  end
+
+  describe "coercion", coercion: true do
+    it "coerces values on initialization" do
+      params = DummyParams.new(age: "42")
+      params.age.should eq(42)
+    end
+
+    it "coerces values from setters" do
+      params = DummyParams.new
+      params.age = "42"
+      params.age.should eq(42)
+    end
+
+    it "coerces nested attributes on initialization" do
+      params = DummyParams.new(address: { zip_code: 90210 })
+      params.address.zip_code.should eq("90210")
+    end      
+
+    it "coerces nested attributes from setters" do
+      params = DummyParams.new
+      params.address.zip_code = 90210
+      params.address.zip_code.should eq("90210")
+    end      
+  end
+
+  describe "defaults", defaults: true do
+    describe "simple defaults" do
+      it "sets default values on initialization without key" do
+        params = DummyParams.new
+        params.amount.should eq(0.10)
+      end
+
+      it "sets default values on initialization with nil value" do
+        params = DummyParams.new(amount: nil)
+        params.amount.should eq(0.10)
+      end
+
+      it "sets default values on initialization with blank value" do
+        params = DummyParams.new(amount: "")
+        params.amount.should eq(0.10)
+      end
+
+      describe "nested params" do
+        it "sets default values on initialization without key" do
+          params = DummyParams.new
+          params.phone.cell_phone.should be_truthy
+        end
+
+        it "sets default values on initialization with nil value" do
+          params = DummyParams.new(phone: { cell_phone: nil })
+          params.phone.cell_phone.should be_truthy
+        end
+
+        it "sets default values on initialization with blank value" do
+          params = DummyParams.new(phone: { cell_phone: "" })
+          params.phone.cell_phone.should be_truthy
+        end
+      end
+    end
+
+    describe "Proc defaults" do
+      it "sets default values on initialization without key" do
+        params = DummyParams.new
+        params.first_initial.should be_nil
+        params = DummyParams.new(name: "Tom")
+        params.first_initial.should eq("T")
+      end
+
+      it "sets default values on initialization with nil value" do
+        params = DummyParams.new
+        params.first_initial.should be_nil
+        params = DummyParams.new(name: "Tom", first_initial: nil)
+        params.first_initial.should eq("T")
+      end
+
+      it "sets default values on initialization with blank value" do
+        params = DummyParams.new
+        params.first_initial.should be_nil
+        params = DummyParams.new(name: "Tom", first_initial: "")
+        params.first_initial.should eq("T")
+      end
+
+      describe "nested params", failing: true do
+        it "sets default values on initialization without key" do
+          params = DummyParams.new
+          params.phone.area_code.should be_nil
+          params = DummyParams.new(phone: { phone_number: "8185559988" })
+          params.phone.area_code.should eq("818")
+        end
+
+        it "sets default values on initialization with nil value" do
+          params = DummyParams.new
+          params.phone.area_code.should be_nil
+          params = DummyParams.new(phone: { phone_number: "8185559988", area_code: nil })
+          params.phone.area_code.should eq("818")
+        end
+
+        it "sets default values on initialization with blank value" do
+          params = DummyParams.new
+          params.phone.area_code.should be_nil
+          params = DummyParams.new(phone: { phone_number: "8185559988", area_code: "" })
+          params.phone.area_code.should eq("818")
+        end
       end
     end
   end

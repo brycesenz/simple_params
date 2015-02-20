@@ -16,6 +16,8 @@ module SimpleParams
         date: Time,
         time: DateTime,
         float: Float,
+        # See note on Virtus
+        boolean: Axiom::Types::Boolean,
         array: Array,
         hash: Hash
       }
@@ -74,34 +76,53 @@ module SimpleParams
       end
     end
 
-    def initialize(params={})
+    def initialize(params={}, parent = nil)
+      @parent = parent
+      @original_params = hash_to_symbolized_hash(params)
       @nested_params = nested_hashes.keys
       @errors = SimpleParams::Errors.new(self, @nested_params)
       initialize_nested_classes
       set_accessors(params)
+      # This method comes from Virtus
+      # virtus/lib/virtus/instance_methods.rb
+      set_default_attributes
     end
 
     protected
     def set_accessors(params={})
-      params.each do |key, value| 
-        self.class.send(:attr_accessor, key)
-        if value.is_a?(Hash)
-          attribute = send("#{key}")
-          attribute.set_accessors(value)
-        else
-          send("#{key}=", value)
+      params.each do |attribute_name, value| 
+        # Don't set accessors for nested classes
+        unless value.is_a?(Hash)
+          send("#{attribute_name}=", value)
+          reset_blank_attributes
+        end
+      end
+    end
+
+    def reset_blank_attributes
+      # Reset to the default value for blank attributes
+      attributes.each do |attribute_name, value|
+        if send(attribute_name).blank?
+          # This method comes from Virtus
+          # virtus/lib/virtus/instance_methods.rb
+          reset_attribute(attribute_name)
         end
       end
     end
 
     private
+    def hash_to_symbolized_hash(hash)
+      hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+    end
+
     def nested_hashes
       self.class.nested_hashes
     end
 
     def initialize_nested_classes
       nested_hashes.each do |key, klass|
-        send("#{key}=", klass.new)
+        initialization_params = @original_params[key.to_sym] || {}
+        send("#{key}=", klass.new(initialization_params, self))
       end
     end
   end
