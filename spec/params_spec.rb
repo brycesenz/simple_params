@@ -1,21 +1,25 @@
 require 'spec_helper'
 
-class AcceptanceParams < SimpleParams::Params
-  param :name
-  param :age, type: Integer, optional: true
+class DummyParams < SimpleParams::Params
+  string_param :name
+  integer_param :age, optional: true
+  date_param :birthdate, optional: true
+  datetime_param :current_time, optional: true
+  decimal_param :amount, optional: true
+  float_param :fraction, optional: true
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
 
   nested_hash :address do
-    param :street
-    param :city, validations: { length: { in: 4..40 } }
-    param :zip_code, optional: true
+    string_param :street
+    string_param :city, validations: { length: { in: 4..40 } }
+    string_param :zip_code, optional: true
     param :state, default: "North Carolina"
   end
 end
 
 describe SimpleParams::Params do
   describe "accessors", accessors: true do
-    let(:params) { AcceptanceParams.new }
+    let(:params) { DummyParams.new }
 
     it "has getter and setter methods for required param" do
       params.should respond_to(:name)
@@ -50,7 +54,7 @@ describe SimpleParams::Params do
 
   describe "array syntax", array_syntax: true do
     let(:params) do 
-      AcceptanceParams.new(
+      DummyParams.new(
         name: "Bill", 
         age: 30, 
         address: { 
@@ -91,38 +95,6 @@ describe SimpleParams::Params do
         params[:address][:city] = "Asheville"
         params[:address][:city].should eq("Asheville")
         params["address"]["city"].should eq("Asheville")
-      end
-    end
-  end
-
-  describe "validations", validations: true do
-    let(:params) { AcceptanceParams.new }
-
-    it "validates presence of required param" do
-      params.should_not be_valid
-      params.errors[:name].should eq(["can't be blank"])
-    end
-
-    it "does not validate presence of optional param" do
-      params.should_not be_valid
-      params.errors[:age].should be_empty
-    end
-
-    it "does validate other validations of optional param" do
-      params = AcceptanceParams.new(color: "blue")
-      params.should_not be_valid
-      params.errors[:color].should eq(["is not included in the list"])
-    end
-
-    describe "nested params", nested: true do
-      it "validates presence of required param" do
-        params.should_not be_valid
-        params.errors[:address][:street].should eq(["can't be blank"])
-      end
-
-      it "does not validate presence of optional param" do
-        params.should_not be_valid
-        params.errors[:address][:zip_code].should be_empty
       end
     end
   end

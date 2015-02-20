@@ -1,4 +1,4 @@
-# require "active_model"
+require "active_model"
 require "virtus"
 
 module SimpleParams
@@ -8,15 +8,28 @@ module SimpleParams
     include SimpleParams::Validations
 
     class << self
-      def optional_param(name, opts={})
-        param(name, opts.merge(optional: true))
+      TYPE_MAPPINGS = {
+        integer: Integer,
+        string: String,
+        decimal: BigDecimal,
+        datetime: DateTime,
+        date: Time,
+        time: DateTime,
+        float: Float,
+        array: Array,
+        hash: Hash
+      }
+
+      TYPE_MAPPINGS.each_pair do |sym, klass|
+        define_method("#{sym}_param") do |name, opts={}|
+          param(name, opts.merge(type: klass))
+        end
       end
 
       def param(name, opts={})
         define_attribute(name, opts)
         add_validations(name, opts)
       end
-      alias_method :required_param, :param
 
       def nested_hash(name, opts={}, &block)
         attr_accessor name
