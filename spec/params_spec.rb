@@ -4,24 +4,32 @@ class DummyParams < SimpleParams::Params
   string_param :name
   integer_param :age, optional: true
   string_param :first_initial, default: lambda { |params, param| params.name[0] if params.name.present? }
-  decimal_param :amount, optional: true, default: 0.10
-  param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
+  decimal_param :amount, optional: true, default: 0.10, format: lambda { |params, param| param.round(2) }
+  param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}, format: :lower_case_colors
 
   nested_hash :address do
     string_param :street
     string_param :city, validations: { length: { in: 4..40 } }
     string_param :zip_code, optional: true, validations: { length: { in: 5..9 } }
-    param :state, default: "North Carolina"
+    param :state, default: "North Carolina", format: :transform_state_code
+
+    def transform_state_code
+      state == "SC" ? "South Carolina" : state
+    end
   end
 
   nested_hash :phone do
     boolean_param :cell_phone, default: true
-    string_param :phone_number, validations: { length: { in: 7..10 } }
+    string_param :phone_number, validations: { length: { in: 7..10 } }, format: lambda { |params, attribute| attribute.gsub(/\D/, "") }
     string_param :area_code, default: lambda { |params, param| 
       if params.phone_number.present? 
         params.phone_number[0..2] 
       end
     }
+  end
+
+  def lower_case_colors
+    color.downcase
   end
 end
 
@@ -188,7 +196,7 @@ describe SimpleParams::Params do
         params.first_initial.should eq("T")
       end
 
-      describe "nested params", failing: true do
+      describe "nested params" do
         it "sets default values on initialization without key" do
           params = DummyParams.new
           params.phone.area_code.should be_nil
@@ -208,6 +216,36 @@ describe SimpleParams::Params do
           params.phone.area_code.should be_nil
           params = DummyParams.new(phone: { phone_number: "8185559988", area_code: "" })
           params.phone.area_code.should eq("818")
+        end
+      end
+    end
+  end
+
+  describe "formatters", formatters: true do
+    describe "Proc formatters" do
+      it "formats on initialization" do
+        params = DummyParams.new(amount: 0.1234)
+        params.amount.should eq(0.12)
+      end
+
+      describe "nested params" do
+        it "formats on initialization" do
+          params = DummyParams.new(phone: { phone_number: "818-555-9988" })
+          params.phone.phone_number.should eq("8185559988")
+        end
+      end
+    end
+
+    describe "method formatters" do
+      it "formats on initialization" do
+        params = DummyParams.new(color: "BLUE")
+        params.color.should eq("blue")
+      end
+
+      describe "nested params" do
+        it "formats on initialization" do
+          params = DummyParams.new(address: { state: "SC" })
+          params.address.state.should eq("South Carolina")
         end
       end
     end

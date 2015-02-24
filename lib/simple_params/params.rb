@@ -6,6 +6,7 @@ module SimpleParams
     include Virtus.model
     include ActiveModel::Validations
     include SimpleParams::Validations
+    include SimpleParams::Formatters
 
     class << self
       TYPE_MAPPINGS = {
@@ -16,8 +17,7 @@ module SimpleParams
         date: Time,
         time: DateTime,
         float: Float,
-        # See note on Virtus
-        boolean: Axiom::Types::Boolean,
+        boolean: Axiom::Types::Boolean, # See note on Virtus
         array: Array,
         hash: Hash
       }
@@ -31,6 +31,7 @@ module SimpleParams
       def param(name, opts={})
         define_attribute(name, opts)
         add_validations(name, opts)
+        add_formatters(name, opts)
       end
 
       def nested_hash(name, opts={}, &block)
@@ -63,6 +64,13 @@ module SimpleParams
         validates name, validations unless validations.empty?
       end
 
+      def add_formatters(name, opts = {})
+        formatter = opts[:format]
+        unless formatter.nil?
+          format name, formatter
+        end
+      end
+
       def define_nested_class(&block)
         Class.new(Params).tap do |klass|
           name_function = Proc.new {
@@ -83,6 +91,7 @@ module SimpleParams
       @errors = SimpleParams::Errors.new(self, @nested_params)
       initialize_nested_classes
       set_accessors(params)
+      run_formatters
       # This method comes from Virtus
       # virtus/lib/virtus/instance_methods.rb
       set_default_attributes
