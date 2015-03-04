@@ -283,4 +283,33 @@ describe SimpleParams::Params do
       end
     end
   end
+
+  describe "undefined params", undefined_params: true do
+    before(:each) do
+      DummyParams.allow_undefined_params
+    end
+
+    it "allows undefined params, and responds with their values" do
+      model = DummyParams.new(other_param: 1)
+      model.other_param.should eq(1)
+    end
+
+    describe "nested params" do
+      it "allows undefined nested params, and creates an anonymous Params class for them" do
+        model = DummyParams.new(nested: { some_value: 1 } )
+        model.nested.should be_a(SimpleParams::Params)
+      end
+
+      it "allows accessors for nested attributes" do
+        model = DummyParams.new(nested: { some_value: 1 } )
+        model.nested.some_value.should eq(1)
+      end
+
+      it "allows multilevel nested params, and creates an anonymous Params class for them" do
+        model = DummyParams.new(nested: { other_nested: { some_value: 1 } } )
+        model.nested.other_nested.should be_a(SimpleParams::Params)
+        model.nested.other_nested.some_value.should eq(1)
+      end
+    end
+  end
 end

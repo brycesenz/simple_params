@@ -29,8 +29,8 @@ All you need to do is create a class to specify accepted parameters and validati
 ```ruby
 class MyParams < SimpleParams::Params
   param :name
-  param :age, type: Integer
-  param :date_of_birth, type: Date, optional: true
+  param :age, type: :integer
+  param :date_of_birth, type: :date, optional: true
   param :hair_color, default: "brown", validations: { inclusion: { in: ["brown", "red", "blonde", "white"] }}
 
   nested_hash :address do
@@ -128,9 +128,9 @@ By default, params are assumed to be strings, so there is no need to specify Str
 ```ruby
 class CoercionParams < SimpleParams::Params
   param :name
-  param :age, type: Integer
-  param :date_of_birth, type: Date
-  param :pocket_change, type: BigDecimal
+  param :age, type: :integer
+  param :date_of_birth, type: :date
+  param :pocket_change, type: :decimal
 end
 
 params = CoercionParams.new(name: "Bob", age: "21", date_of_birth: "June 1st, 1980", pocket_change: "2.35")
@@ -151,6 +151,47 @@ class CoercionParams < SimpleParams::Params
   decimal_param :pocket_change
 end
 ```
+
+# Formatters
+
+SimpleParams also provides a way to define a formatter for your attributes.  You can use either  Proc, or a method name.  If you do the latter, the method must accept an input value, which will be the un-formatted value of your attribute.
+
+```ruby
+class FormattedParams < SimpleParams::Params
+  param :name, formatter: :first_ten
+  param :age, formatter: lambda { |params, age| [age, 100].min }
+
+  def first_ten(val)
+    val.first(10)
+  end
+end
+
+params = FormattedParams.new(name: "Thomas Paine", age: 500)
+
+params.name #=> "Thomas Pai"
+params.age #=> 100
+```
+
+# Strict/Flexible Parameter Enforcement
+
+By default, SimpleParams will throw an error if you try to assign a parameter not defined within your class.  However, you can override this setting to allow for flexible parameter assignment.
+
+```ruby
+class FlexibleParams < SimpleParams::Params
+  allow_undefined_params
+  param :name
+  param :age
+end
+
+params = FlexibleParams.new(name: "Bryce", age: 30, weight: 160, dog: { name: "Bailey", breed: "Shiba Inu" })
+
+params.name #=> "Bryce"
+params.age #=> 30
+params.weight #=> 160
+params.dog.name #=> "Bailey"
+params.dog.breed #=> "Shiba Inu"
+```
+
 
 ## Contributing
 

@@ -127,7 +127,12 @@ module SimpleParams
         raise SimpleParamsError, "parameter #{method_name} is not defined."
       else
         if @original_params.include?(method_name.to_sym)
-          Attribute.new(self, method_name).value = @original_params[method_name.to_sym]
+          value = @original_params[method_name.to_sym]
+          if value.is_a?(Hash)
+            define_anonymous_class(value)
+          else
+            Attribute.new(self, method_name).value = value
+          end
         end
       end
     end
@@ -167,6 +172,19 @@ module SimpleParams
         initialization_params = @original_params[key.to_sym] || {}
         send("#{key}=", klass.new(initialization_params, self))
       end
+    end
+
+    def define_anonymous_class(hash)
+      klass = Class.new(Params).tap do |klass|
+        name_function = Proc.new {
+          def self.model_name
+            ActiveModel::Name.new(self, nil, "temp")
+          end
+        }
+        klass.class_eval(&name_function)
+      end
+      klass.allow_undefined_params
+      klass.new(hash)
     end
   end
 end
