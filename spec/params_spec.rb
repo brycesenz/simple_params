@@ -34,6 +34,12 @@ class DummyParams < SimpleParams::Params
 end
 
 describe SimpleParams::Params do
+  describe "strict parameter enforcement", failing: true do
+    # it "raises error on expected param" do
+    #   expect { DummyParams.new(other_param: 1) }.to raise_error(SimpleParamsError)
+    # end
+  end
+
   describe "accessors", accessors: true do
     let(:params) { DummyParams.new }
 

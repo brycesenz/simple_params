@@ -14,8 +14,8 @@ module SimpleParams
         string: String,
         decimal: BigDecimal,
         datetime: DateTime,
-        date: Time,
-        time: DateTime,
+        date: Date,
+        time: Time,
         float: Float,
         boolean: Axiom::Types::Boolean, # See note on Virtus
         array: Array,
@@ -95,6 +95,12 @@ module SimpleParams
       # This method comes from Virtus
       # virtus/lib/virtus/instance_methods.rb
       set_default_attributes
+    end
+
+    def define_attribute(params)
+      params.each_pair do |key, value|
+
+      end
     end
 
     protected
