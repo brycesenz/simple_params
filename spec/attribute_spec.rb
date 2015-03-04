@@ -45,6 +45,15 @@ describe SimpleParams::Attribute do
   end
 
   describe "coercion" do
+    context "without type" do
+      let(:model) { described_class.new(house, "color")}
+
+      it "does not coerce value" do
+        model.value = 1
+        model.value.should eq(1)
+      end
+    end
+
     context "with :integer type" do
       let(:model) { described_class.new(house, "color", { type: :integer })}
 

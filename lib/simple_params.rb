@@ -1,7 +1,6 @@
 require 'simple_params/version'
 require 'simple_params/attribute'
 require 'simple_params/formatter'
-require 'simple_params/formatters'
 require 'simple_params/errors'
 require 'simple_params/validations'
 require 'simple_params/params'

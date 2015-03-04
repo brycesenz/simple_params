@@ -6,32 +6,40 @@ module SimpleParams
     include Virtus.model
     include ActiveModel::Validations
     include SimpleParams::Validations
-    include SimpleParams::Formatters
 
     class << self
-      TYPE_MAPPINGS = {
-        integer: Integer,
-        string: String,
-        decimal: BigDecimal,
-        datetime: DateTime,
-        date: Date,
-        time: Time,
-        float: Float,
-        boolean: Axiom::Types::Boolean, # See note on Virtus
-        array: Array,
-        hash: Hash
-      }
+      TYPES = [
+        :integer,
+        :string,
+        :decimal,
+        :datetime,
+        :date,
+        :time,
+        :float,
+        :boolean,
+        :array,
+        :hash
+      ]
 
-      TYPE_MAPPINGS.each_pair do |sym, klass|
+      TYPES.each do |sym|
         define_method("#{sym}_param") do |name, opts={}|
-          param(name, opts.merge(type: klass))
+          param(name, opts.merge(type: sym))
         end
+      end
+
+      attr_accessor :strict_enforcement
+
+      def strict
+        @strict_enforcement = true
+      end
+
+      def allow_undefined_params
+        @strict_enforcement = false
       end
 
       def param(name, opts={})
         define_attribute(name, opts)
         add_validations(name, opts)
-        add_formatters(name, opts)
       end
 
       def nested_hash(name, opts={}, &block)
@@ -47,14 +55,24 @@ module SimpleParams
         @nested_hashes || {}
       end
 
+      def defined_attributes
+        @define_attributes ||= {}
+      end
       private
+
       def define_attribute(name, opts = {})
-        type = opts[:type] || String
-        default = opts[:default]
-        if default.present?
-          attribute name, type, default: default
-        else
-          attribute name, type
+        opts[:type] ||= :string
+        defined_attributes[name.to_sym] = opts
+        attr_accessor "#{name}_attribute"
+
+        define_method("#{name}") do
+          attribute = send("#{name}_attribute")
+          attribute.send("value")
+        end
+
+        define_method("#{name}=") do |val|
+          attribute = send("#{name}_attribute")
+          attribute.send("value=", val)
         end
       end
 
@@ -62,13 +80,6 @@ module SimpleParams
         validations = opts[:validations] || {}
         validations.merge!(presence: true) unless opts[:optional]
         validates name, validations unless validations.empty?
-      end
-
-      def add_formatters(name, opts = {})
-        formatter = opts[:format]
-        unless formatter.nil?
-          format name, formatter
-        end
       end
 
       def define_nested_class(&block)
@@ -85,47 +96,64 @@ module SimpleParams
     end
 
     def initialize(params={}, parent = nil)
+      # Set default strict params
+      if self.class.strict_enforcement.nil?
+        self.class.strict_enforcement = true
+      end
+
       @parent = parent
+      # Initializing Params
       @original_params = hash_to_symbolized_hash(params)
+      define_attributes(@original_params)
+
+      # Errors
       @nested_params = nested_hashes.keys
       @errors = SimpleParams::Errors.new(self, @nested_params)
-      initialize_nested_classes
+
+      # Nested Classes
       set_accessors(params)
-      run_formatters
-      # This method comes from Virtus
-      # virtus/lib/virtus/instance_methods.rb
-      set_default_attributes
+      initialize_nested_classes
     end
 
-    def define_attribute(params)
-      params.each_pair do |key, value|
-
+    def define_attributes(params)
+      self.class.defined_attributes.each_pair do |key, opts|
+        send("#{key}_attribute=", Attribute.new(self, key, opts))
       end
     end
 
-    protected
+    # Overriding this method to allow for non-strict enforcement!
+    def method_missing(method_name, *arguments, &block)
+      if strict_enforcement?
+        raise SimpleParamsError, "parameter #{method_name} is not defined."
+      else
+        if @original_params.include?(method_name.to_sym)
+          Attribute.new(self, method_name).value = @original_params[method_name.to_sym]
+        end
+      end
+    end
+
+    def respond_to?(method_name, include_private = false)
+      if strict_enforcement?
+        super
+      else
+        @original_params.include?(method_name.to_sym) || super
+      end
+    end
+
+    private
+    def strict_enforcement?
+      self.class.strict_enforcement
+    end
+
     def set_accessors(params={})
       params.each do |attribute_name, value| 
         # Don't set accessors for nested classes
         unless value.is_a?(Hash)
           send("#{attribute_name}=", value)
-          reset_blank_attributes
         end
       end
     end
 
-    def reset_blank_attributes
-      # Reset to the default value for blank attributes
-      attributes.each do |attribute_name, value|
-        if send(attribute_name).blank?
-          # This method comes from Virtus
-          # virtus/lib/virtus/instance_methods.rb
-          reset_attribute(attribute_name)
-        end
-      end
-    end
-
-    private
     def hash_to_symbolized_hash(hash)
       hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
     end

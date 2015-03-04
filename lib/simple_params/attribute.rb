@@ -22,28 +22,32 @@ module SimpleParams
     def initialize(parent, name, opts={})
       @parent = parent
       @name = name.to_sym
-      @type = TYPE_MAPPINGS[opts[:type]] || String
+      @type = TYPE_MAPPINGS[opts[:type]]
       @value = nil
       @default = opts[:default]
       @formatter = opts[:formatter]
     end
 
     def raw_value
-      @value || default
+      @value.blank? ? default : @value
     end
 
     def value
+      return raw_value if raw_value.blank?
       if @formatter.present?
-        formatter = Formatter.new(@parent, @formatter)
-        formatter.format(raw_value)
+        Formatter.new(@parent, @formatter).format(raw_value)
       else
         raw_value
       end
     end
 
     def value=(val)
-      virtus_attr = Virtus::Attribute.build(@type)
-      @value = virtus_attr.coerce(val)
+      @value = if @type.present?
+        virtus_attr = Virtus::Attribute.build(@type)
+        virtus_attr.coerce(val)
+      else
+        val
+      end
     end
 
   private
