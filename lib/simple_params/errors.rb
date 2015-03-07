@@ -78,7 +78,16 @@ module SimpleParams
     end
 
     def to_hash(full_messages = false)
-      messages = super(full_messages)
+      messages = if full_messages
+        msgs = {}
+        self.messages.each do |attribute, array|
+          msgs[attribute] = array.map { |message| full_message(attribute, message) }
+        end
+        msgs
+      else
+        self.messages.dup
+      end
+
       nested_messages = @nested_attributes.map do |attribute|
         errors = nested_error_messages(attribute, full_messages)
         unless errors.empty?

@@ -21,7 +21,7 @@ module SimpleParams
 
     def validate!
       unless valid?
-        raise StandardError, errors.to_s
+        raise SimpleParamsError, self.errors.to_hash.to_s
       end
     end
   end

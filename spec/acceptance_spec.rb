@@ -125,5 +125,15 @@ describe SimpleParams::Params do
         params.errors[:address][:zip_code].should be_empty
       end
     end
+
+    describe "#validate!" do
+      let(:params) { AcceptanceParams.new }
+
+      it "raises error with valdiation descriptions" do
+        expect { params.validate! }.to raise_error(SimpleParamsError,
+          "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}}"
+        )
+      end
+    end
   end
 end
