@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'simple_params'
+require 'pry'
 
 Dir[("../spec/support/**/*.rb")].each {|f| require f}
 
