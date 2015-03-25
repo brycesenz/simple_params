@@ -70,53 +70,53 @@ describe SimpleParams::ApiPieDoc do
     end
   end
 
-  describe "#attribute_as_api_doc" do
-    specify "should add a line to the api documentation" do
-      formatted_string = api_pie_doc.send(:attribute_as_api_doc, [:dob, {:type=>:string}])
-      expect(formatted_string).to eq "param :dob, String, required: true"
-    end
-  end
+  # describe "#attribute_as_api_doc" do
+  #   specify "should add a line to the api documentation" do
+  #     formatted_string = api_pie_doc.send(:attribute_as_api_doc, [:dob, {:type=>:string}])
+  #     expect(formatted_string).to eq "param :dob, String, required: true"
+  #   end
+  # end
 
-  describe "#add_nested_attribute_to_doc" do
-    specify "should add to docs array" do
-      api_pie_doc.send(:add_nested_attribute_to_doc, { :i_like_pie => { pecan: { type: :string } } })
-      expect(api_pie_doc.docs).to eq ["param :i_like_pie, Hash, required: true do", "param :pecan, String, required: true", "end"]
-    end
-  end
+  # describe "#add_nested_attribute_to_doc" do
+  #   specify "should add to docs array" do
+  #     api_pie_doc.send(:add_nested_attribute_to_doc, { :i_like_pie => { pecan: { type: :string } } })
+  #     expect(api_pie_doc.docs).to eq ["param :i_like_pie, Hash, required: true do", "param :pecan, String, required: true", "end"]
+  #   end
+  # end
 
-  describe "#attribute_type" do
-    context "is passed a valid symbol type" do
-      specify "should return a formatted string with constantized version of symbol" do
-        expect(api_pie_doc.send(:attribute_type, :string)).to eq ", String"
-      end
-    end
-    context "is passed a valid class as a string" do
-      specify "should return a formatted string with constantized version of symbol" do
-        expect(api_pie_doc.send(:attribute_type, 'String')).to eq ", String"
-      end
-    end
-    context "is passes anything else" do
-      specify "should raise an error" do
-        expect{api_pie_doc.send(:attribute_type, 'Craziness')}.to raise_error(SimpleParams::ApiPieDoc::NotValidValueError)
-      end
-    end
-  end
+  # describe "#attribute_type" do
+  #   context "is passed a valid symbol type" do
+  #     specify "should return a formatted string with constantized version of symbol" do
+  #       expect(api_pie_doc.send(:attribute_type, :string)).to eq ", String"
+  #     end
+  #   end
+  #   context "is passed a valid class as a string" do
+  #     specify "should return a formatted string with constantized version of symbol" do
+  #       expect(api_pie_doc.send(:attribute_type, 'String')).to eq ", String"
+  #     end
+  #   end
+  #   context "is passes anything else" do
+  #     specify "should raise an error" do
+  #       expect{api_pie_doc.send(:attribute_type, 'Craziness')}.to raise_error(SimpleParams::ApiPieDoc::NotValidValueError)
+  #     end
+  #   end
+  # end
 
-  describe "#attribute_required" do
-    context "when passed true" do
-      specify "should return a formatted string indicating the attribute is not required" do
-        expect(api_pie_doc.send(:attribute_required, true)).to eq ""
-      end
-    end
-    context "when passed false" do
-      specify "should return a formatted string indicating the attribute is required" do
-        expect(api_pie_doc.send(:attribute_required, false)).to eq ", required: true"
-      end
-    end
-    context "when passed anything other than true or false" do
-      specify "should return a formatted string indicating the attribute is required" do
-        expect(api_pie_doc.send(:attribute_required, "blahblah")).to eq ", required: true"
-      end
-    end
-  end
+  # describe "#attribute_required" do
+  #   context "when passed true" do
+  #     specify "should return a formatted string indicating the attribute is not required" do
+  #       expect(api_pie_doc.send(:attribute_required, true)).to eq ""
+  #     end
+  #   end
+  #   context "when passed false" do
+  #     specify "should return a formatted string indicating the attribute is required" do
+  #       expect(api_pie_doc.send(:attribute_required, false)).to eq ", required: true"
+  #     end
+  #   end
+  #   context "when passed anything other than true or false" do
+  #     specify "should return a formatted string indicating the attribute is required" do
+  #       expect(api_pie_doc.send(:attribute_required, "blahblah")).to eq ", required: true"
+  #     end
+  #   end
+  # end
 end

@@ -313,7 +313,7 @@ describe SimpleParams::Params do
     end
   end
 
-  describe "api_pie_documentation" do
+  describe "api_pie_documentation", api_pie_documentation: true do
     it "generates valida api_pie documentation" do
       documentation = DummyParams.api_pie_documentation
       api_docs = <<-API_PIE_DOCS

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class AcceptanceParams < SimpleParams::Params
   param :name
-  param :age, type: Integer, optional: true
+  param :age, type: :integer, optional: true
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
 
   nested_hash :address do
@@ -134,6 +134,26 @@ describe SimpleParams::Params do
           "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}}"
         )
       end
+    end
+  end
+
+  describe "api_pie_documentation", api_pie_documentation: true do
+    it "generates valida api_pie documentation" do
+      documentation = AcceptanceParams.api_pie_documentation
+      api_docs = <<-API_PIE_DOCS
+        param :name, String, required: true
+        param :age, Integer
+        param :color, String, required: true
+        param :address, Hash, required: true do
+          param :street, String, required: true
+          param :city, String, required: true
+          param :zip_code, String
+          param :state, String, required: true
+        end
+      API_PIE_DOCS
+
+      expect(documentation).to be_a String
+      expect(documentation.gsub(/\s+/, "")).to eq api_docs.gsub(/\s+/, "")
     end
   end
 end
