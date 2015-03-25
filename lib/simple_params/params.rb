@@ -7,19 +7,20 @@ module SimpleParams
     include ActiveModel::Validations
     include SimpleParams::Validations
 
+    TYPES = [
+      :integer,
+      :string,
+      :decimal,
+      :datetime,
+      :date,
+      :time,
+      :float,
+      :boolean,
+      :array,
+      :hash
+    ]
+
     class << self
-      TYPES = [
-        :integer,
-        :string,
-        :decimal,
-        :datetime,
-        :date,
-        :time,
-        :float,
-        :boolean,
-        :array,
-        :hash
-      ]
 
       TYPES.each do |sym|
         define_method("#{sym}_param") do |name, opts={}|
@@ -28,6 +29,10 @@ module SimpleParams
       end
 
       attr_accessor :strict_enforcement
+
+      def api_pie_documentation
+        SimpleParams::ApiPieDoc.new(self).build
+      end
 
       def strict
         @strict_enforcement = true
@@ -151,7 +156,7 @@ module SimpleParams
     end
 
     def set_accessors(params={})
-      params.each do |attribute_name, value| 
+      params.each do |attribute_name, value|
         # Don't set accessors for nested classes
         unless value.is_a?(Hash)
           send("#{attribute_name}=", value)

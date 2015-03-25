@@ -21,9 +21,9 @@ class DummyParams < SimpleParams::Params
   nested_hash :phone do
     boolean_param :cell_phone, default: true
     string_param :phone_number, validations: { length: { in: 7..10 } }, formatter: lambda { |params, attribute| attribute.gsub(/\D/, "") }
-    string_param :area_code, default: lambda { |params, param| 
-      if params.phone_number.present? 
-        params.phone_number[0..2] 
+    string_param :area_code, default: lambda { |params, param|
+      if params.phone_number.present?
+        params.phone_number[0..2]
       end
     }
   end
@@ -76,7 +76,7 @@ describe SimpleParams::Params do
       params.name = "Tom"
       params.name.should eq("Tom")
     end
-    
+
     it "has getter and setter methods for optional param" do
       params.should respond_to(:age)
       params.name.should be_nil
@@ -91,7 +91,7 @@ describe SimpleParams::Params do
         params.address.street = "1 Main St."
         params.address.street.should eq("1 Main St.")
       end
-      
+
       it "has getter and setter methods for optional param" do
         params.address.should respond_to(:zip_code)
         params.address.zip_code.should be_nil
@@ -102,13 +102,13 @@ describe SimpleParams::Params do
   end
 
   describe "array syntax", array_syntax: true do
-    let(:params) do 
+    let(:params) do
       DummyParams.new(
-        name: "Bill", 
-        age: 30, 
-        address: { 
-          city: "Greenville" 
-        } 
+        name: "Bill",
+        age: 30,
+        address: {
+          city: "Greenville"
+        }
       )
     end
 
@@ -163,13 +163,13 @@ describe SimpleParams::Params do
     it "coerces nested attributes on initialization" do
       params = DummyParams.new(address: { zip_code: 90210 })
       params.address.zip_code.should eq("90210")
-    end      
+    end
 
     it "coerces nested attributes from setters" do
       params = DummyParams.new
       params.address.zip_code = 90210
       params.address.zip_code.should eq("90210")
-    end      
+    end
   end
 
   describe "defaults", defaults: true do
@@ -310,6 +310,33 @@ describe SimpleParams::Params do
         model.nested.other_nested.should be_a(SimpleParams::Params)
         model.nested.other_nested.some_value.should eq(1)
       end
+    end
+  end
+
+  describe "api_pie_documentation" do
+    it "generates valida api_pie documentation" do
+      documentation = DummyParams.api_pie_documentation
+      api_docs = <<-API_PIE_DOCS
+                  param :name, String, required: true
+                  param :age, Integer
+                  param :first_initial, String, required: true
+                  param :amount
+                  param :color, String, required: true
+                  param :address, Hash, required: true do
+                    param :street, String, required: true
+                    param :city, String, required: true
+                    param :zip_code, String
+                    param :state, String, required: true
+                  end
+                  param :phone, Hash, required: true do
+                    param :cell_phone, required: true
+                    param :phone_number, String, required: true
+                    param :area_code, String, required: true
+                  end
+                API_PIE_DOCS
+
+      expect(documentation).to be_a String
+      expect(documentation.gsub(/\s+/, "")).to eq api_docs.gsub(/\s+/, "")
     end
   end
 end
