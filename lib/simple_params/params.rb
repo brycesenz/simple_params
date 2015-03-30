@@ -28,7 +28,7 @@ module SimpleParams
         end
       end
 
-      attr_accessor :strict_enforcement
+      attr_accessor :strict_enforcement, :options
 
       def api_pie_documentation
         SimpleParams::ApiPieDoc.new(self).build
@@ -49,7 +49,7 @@ module SimpleParams
 
       def nested_hash(name, opts={}, &block)
         attr_accessor name
-        nested_class = define_nested_class(&block)
+        nested_class = define_nested_class(opts, &block)
         @nested_hashes ||= {}
         @nested_hashes[name.to_sym] = nested_class
       end
@@ -87,7 +87,7 @@ module SimpleParams
         validates name, validations unless validations.empty?
       end
 
-      def define_nested_class(&block)
+      def define_nested_class(options, &block)
         Class.new(Params).tap do |klass|
           name_function = Proc.new {
             def self.model_name
@@ -96,6 +96,7 @@ module SimpleParams
           }
           klass.class_eval(&name_function)
           klass.class_eval(&block)
+          klass.class_eval("self.options = options")
         end
       end
     end

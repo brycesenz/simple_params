@@ -31,7 +31,7 @@ module SimpleParams
 
     def build_nested_attributes
       nested_hashes.each do |name, parameter_set|
-        nested_attributes << { name => parameter_set.defined_attributes }
+        nested_attributes << { name => parameter_set.defined_attributes, options: parameter_set.options }
       end
     end
   end
