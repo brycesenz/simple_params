@@ -1,37 +1,5 @@
 require 'spec_helper'
-
-class DummyParams < SimpleParams::Params
-  string_param :name
-  integer_param :age, optional: true
-  string_param :first_initial, default: lambda { |params, param| params.name[0] if params.name.present? }
-  decimal_param :amount, optional: true, default: 0.10, formatter: lambda { |params, param| param.round(2) }
-  param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}, formatter: :lower_case_colors
-
-  nested_hash :address do
-    string_param :street
-    string_param :city, validations: { length: { in: 4..40 } }
-    string_param :zip_code, optional: true, validations: { length: { in: 5..9 } }
-    param :state, default: "North Carolina", formatter: :transform_state_code
-
-    def transform_state_code(val)
-      val == "SC" ? "South Carolina" : val
-    end
-  end
-
-  nested_hash :phone do
-    boolean_param :cell_phone, default: true
-    string_param :phone_number, validations: { length: { in: 7..10 } }, formatter: lambda { |params, attribute| attribute.gsub(/\D/, "") }
-    string_param :area_code, default: lambda { |params, param|
-      if params.phone_number.present?
-        params.phone_number[0..2]
-      end
-    }
-  end
-
-  def lower_case_colors(val)
-    val.downcase
-  end
-end
+require 'fixtures/dummy_params'
 
 describe SimpleParams::Params do
   describe "strict parameter enforcement" do
@@ -313,25 +281,25 @@ describe SimpleParams::Params do
     end
   end
 
-  describe "api_pie_documentation" do
+  describe "api_pie_documentation", api_pie_documentation: true do
     it "generates valida api_pie documentation" do
       documentation = DummyParams.api_pie_documentation
       api_docs = <<-API_PIE_DOCS
-                  param :name, String, required: true
-                  param :age, Integer
-                  param :first_initial, String, required: true
-                  param :amount
-                  param :color, String, required: true
-                  param :address, Hash, required: true do
-                    param :street, String, required: true
-                    param :city, String, required: true
-                    param :zip_code, String
-                    param :state, String, required: true
+                  param :name, String, desc: '', required: true
+                  param :age, Integer, desc: ''
+                  param :first_initial, String, desc: '', required: true
+                  param :amount, desc: ''
+                  param :color, String, desc: '', required: true
+                  param :address, Hash, desc: '', required: true do
+                    param :street, String, desc: '', required: true
+                    param :city, String, desc: '', required: true
+                    param :zip_code, String, desc: ''
+                    param :state, String, desc: '', required: true
                   end
-                  param :phone, Hash, required: true do
-                    param :cell_phone, required: true
-                    param :phone_number, String, required: true
-                    param :area_code, String, required: true
+                  param :phone, Hash, desc: '', required: true do
+                    param :cell_phone, desc: '', required: true
+                    param :phone_number, String, desc: '', required: true
+                    param :area_code, String, desc: '', required: true
                   end
                 API_PIE_DOCS
 

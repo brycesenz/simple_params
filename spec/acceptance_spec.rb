@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class AcceptanceParams < SimpleParams::Params
   param :name
-  param :age, type: Integer, optional: true
+  param :age, type: :integer, optional: true
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
 
   nested_hash :address do
@@ -23,7 +23,7 @@ describe SimpleParams::Params do
       params.name = "Tom"
       params.name.should eq("Tom")
     end
-    
+
     it "has getter and setter methods for optional param" do
       params.should respond_to(:age)
       params.name.should be_nil
@@ -38,7 +38,7 @@ describe SimpleParams::Params do
         params.address.street = "1 Main St."
         params.address.street.should eq("1 Main St.")
       end
-      
+
       it "has getter and setter methods for optional param" do
         params.address.should respond_to(:zip_code)
         params.address.zip_code.should be_nil
@@ -49,13 +49,13 @@ describe SimpleParams::Params do
   end
 
   describe "array syntax", array_syntax: true do
-    let(:params) do 
+    let(:params) do
       AcceptanceParams.new(
-        name: "Bill", 
-        age: 30, 
-        address: { 
-          city: "Greenville" 
-        } 
+        name: "Bill",
+        age: 30,
+        address: {
+          city: "Greenville"
+        }
       )
     end
 
@@ -134,6 +134,26 @@ describe SimpleParams::Params do
           "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}}"
         )
       end
+    end
+  end
+
+  describe "api_pie_documentation", api_pie_documentation: true do
+    it "generates valida api_pie documentation" do
+      documentation = AcceptanceParams.api_pie_documentation
+      api_docs = <<-API_PIE_DOCS
+        param :name, String, desc: '', required: true
+        param :age, Integer, desc: ''
+        param :color, String, desc: '', required: true
+        param :address, Hash, desc: '', required: true do
+          param :street, String, desc: '', required: true
+          param :city, String, desc: '', required: true
+          param :zip_code, String, desc: ''
+          param :state, String, desc: '', required: true
+        end
+      API_PIE_DOCS
+
+      expect(documentation).to be_a String
+      expect(documentation.gsub(/\s+/, "")).to eq api_docs.gsub(/\s+/, "")
     end
   end
 end
