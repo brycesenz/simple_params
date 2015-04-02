@@ -127,6 +127,10 @@ module SimpleParams
       end
     end
 
+    def attributes
+      (defined_attributes.keys + nested_hashes.keys).flatten
+    end
+
     # Overriding this method to allow for non-strict enforcement!
     def method_missing(method_name, *arguments, &block)
       if strict_enforcement?
@@ -167,6 +171,10 @@ module SimpleParams
 
     def hash_to_symbolized_hash(hash)
       hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+    end
+
+    def defined_attributes
+      self.class.defined_attributes
     end
 
     def nested_hashes

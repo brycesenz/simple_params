@@ -69,6 +69,13 @@ describe SimpleParams::Params do
     end
   end
 
+  describe "attributes", attributes: true do
+    it "returns array of attribute symbols" do
+      params = DummyParams.new
+      params.attributes.should eq([:name, :age, :first_initial, :amount, :color, :address, :phone])
+    end
+  end
+
   describe "array syntax", array_syntax: true do
     let(:params) do
       DummyParams.new(

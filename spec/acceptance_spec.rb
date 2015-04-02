@@ -48,6 +48,13 @@ describe SimpleParams::Params do
     end
   end
 
+  describe "attributes", attributes: true do
+    it "returns array of attribute symbols" do
+      params = AcceptanceParams.new
+      params.attributes.should eq([:name, :age, :color, :address])
+    end
+  end
+
   describe "array syntax", array_syntax: true do
     let(:params) do
       AcceptanceParams.new(
