@@ -17,7 +17,8 @@ module SimpleParams
       :float,
       :boolean,
       :array,
-      :hash
+      :hash,
+      :object
     ]
 
     class << self

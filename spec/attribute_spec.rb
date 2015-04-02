@@ -89,6 +89,16 @@ describe SimpleParams::Attribute do
         model.value.should be_falsey
       end
     end
+
+    context "with :object type" do
+      let(:model) { described_class.new(house, "color", { type: :object })}
+
+      it "coerces values into Object" do
+        other_house = House.new
+        model.value = other_house
+        model.value.should eq(other_house)
+      end
+    end
   end
 
   describe "defaults" do

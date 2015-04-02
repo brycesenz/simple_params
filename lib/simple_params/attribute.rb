@@ -13,7 +13,8 @@ module SimpleParams
       float: Float,
       boolean: Axiom::Types::Boolean, # See note on Virtus
       array: Array,
-      hash: Hash
+      hash: Hash,
+      object: Object
     }
 
     attr_reader :parent
@@ -29,7 +30,8 @@ module SimpleParams
     end
 
     def raw_value
-      @value.blank? ? default : @value
+      empty = @value.nil? || (@value.is_a?(String) && @value.blank?)
+      empty ? default : @value
     end
 
     def value

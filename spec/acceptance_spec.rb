@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 class AcceptanceParams < SimpleParams::Params
+  param :reference, type: :object, optional: true
   param :name
   param :age, type: :integer, optional: true
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
@@ -16,6 +17,14 @@ end
 describe SimpleParams::Params do
   describe "accessors", accessors: true do
     let(:params) { AcceptanceParams.new }
+
+    it "has getter and setter methods for object param", failing: true do
+      params.should respond_to(:reference)
+      params.reference.should be_nil
+      new_object = OpenStruct.new(count: 4)
+      params.reference = new_object
+      params.reference.should eq(new_object)
+    end
 
     it "has getter and setter methods for required param" do
       params.should respond_to(:name)
@@ -51,7 +60,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:name, :age, :color, :address])
+      params.attributes.should eq([:reference, :name, :age, :color, :address])
     end
   end
 
@@ -148,6 +157,7 @@ describe SimpleParams::Params do
     it "generates valida api_pie documentation" do
       documentation = AcceptanceParams.api_pie_documentation
       api_docs = <<-API_PIE_DOCS
+        param:reference, Object, desc:''
         param :name, String, desc: '', required: true
         param :age, Integer, desc: ''
         param :color, String, desc: '', required: true

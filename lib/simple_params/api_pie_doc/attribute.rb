@@ -50,7 +50,7 @@ module SimpleParams
     def type_description
       value = options[:type]
       case value
-      when :string, :integer, :array, :hash
+      when :string, :integer, :array, :hash, :object
         "#{value.to_s.capitalize.constantize}"
       when 'String', 'Integer', 'Array', 'Hash'
         "#{value}"
