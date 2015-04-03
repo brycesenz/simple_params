@@ -17,7 +17,8 @@ module SimpleParams
       :float,
       :boolean,
       :array,
-      :hash
+      :hash,
+      :object
     ]
 
     class << self
@@ -28,7 +29,7 @@ module SimpleParams
         end
       end
 
-      attr_accessor :strict_enforcement
+      attr_accessor :strict_enforcement, :options
 
       def api_pie_documentation
         SimpleParams::ApiPieDoc.new(self).build
@@ -49,7 +50,7 @@ module SimpleParams
 
       def nested_hash(name, opts={}, &block)
         attr_accessor name
-        nested_class = define_nested_class(&block)
+        nested_class = define_nested_class(opts, &block)
         @nested_hashes ||= {}
         @nested_hashes[name.to_sym] = nested_class
       end
@@ -87,7 +88,7 @@ module SimpleParams
         validates name, validations unless validations.empty?
       end
 
-      def define_nested_class(&block)
+      def define_nested_class(options, &block)
         Class.new(Params).tap do |klass|
           name_function = Proc.new {
             def self.model_name
@@ -96,6 +97,7 @@ module SimpleParams
           }
           klass.class_eval(&name_function)
           klass.class_eval(&block)
+          klass.class_eval("self.options = options")
         end
       end
     end
@@ -124,6 +126,10 @@ module SimpleParams
       self.class.defined_attributes.each_pair do |key, opts|
         send("#{key}_attribute=", Attribute.new(self, key, opts))
       end
+    end
+
+    def attributes
+      (defined_attributes.keys + nested_hashes.keys).flatten
     end
 
     # Overriding this method to allow for non-strict enforcement!
@@ -166,6 +172,10 @@ module SimpleParams
 
     def hash_to_symbolized_hash(hash)
       hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+    end
+
+    def defined_attributes
+      self.class.defined_attributes
     end
 
     def nested_hashes
