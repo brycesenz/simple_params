@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'support/base_attribute_spec'
 
 describe SimpleParams::ApiPieDoc::NestedAttribute do
 

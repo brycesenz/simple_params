@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'support/base_attribute_spec'
 
 describe SimpleParams::ApiPieDoc::Attribute do
   let(:simple_param_attribute) { [:name, {:type=>:string}] }

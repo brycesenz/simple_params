@@ -58,7 +58,7 @@ module SimpleParams
       alias_method :nested, :nested_hash
 
       def nested_hashes
-        @nested_hashes || {}
+        @nested_hashes ||= {}
       end
 
       def defined_attributes
@@ -190,13 +190,13 @@ module SimpleParams
     end
 
     def define_anonymous_class(hash)
-      klass = Class.new(Params).tap do |klass|
+      klass = Class.new(Params).tap do |k|
         name_function = Proc.new {
           def self.model_name
             ActiveModel::Name.new(self, nil, "temp")
           end
         }
-        klass.class_eval(&name_function)
+        k.class_eval(&name_function)
       end
       klass.allow_undefined_params
       klass.new(hash)

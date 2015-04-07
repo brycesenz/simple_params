@@ -88,7 +88,7 @@ module SimpleParams
         self.messages.dup
       end
 
-      nested_messages = @nested_attributes.map do |attribute|
+      @nested_attributes.map do |attribute|
         errors = nested_error_messages(attribute, full_messages)
         unless errors.empty?
           messages.merge!(attribute.to_sym => errors)
@@ -102,8 +102,8 @@ module SimpleParams
       if fetch_nested_attribute(attribute)
         if full_messages
           errors = fetch_nested_attribute(attribute).errors
-          errors.messages.each_with_object({}) do |(attribute, array), messages|
-            messages[attribute] = array.map { |message| errors.full_message(attribute, message) }
+          errors.messages.each_with_object({}) do |(attr, array), messages|
+            messages[attr] = array.map { |message| errors.full_message(attr, message) }
           end
         else
           fetch_nested_attribute(attribute).errors.messages.dup

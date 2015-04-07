@@ -2,8 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'simple_params'
 require 'pry'
-
-Dir[("../spec/support/**/*.rb")].each {|f| require f}
+require 'support/base_attribute_spec'
 
 I18n.config.enforce_available_locales = true
 
