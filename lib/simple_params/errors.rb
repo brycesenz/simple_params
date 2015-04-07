@@ -97,6 +97,11 @@ module SimpleParams
       messages
     end
 
+    def to_s(full_messages = false)
+      array = to_a
+      array.join(', ')
+    end
+
     private
     def nested_error_messages(attribute, full_messages = false)
       if fetch_nested_attribute(attribute)

@@ -276,6 +276,22 @@ describe SimpleParams::Errors do
     end
   end
 
+  describe "#to_s" do
+    it "to_a returns the list of errors with complete messages containing the attribute names" do
+      person = Person.new
+      person.errors.add(:name, "can not be blank")
+      person.errors.add(:name, "can not be nil")
+      person.errors.to_s.should eq("name can not be blank, name can not be nil")
+    end
+
+    it "handles nested attributes" do
+      person = Person.new
+      person.errors.add(:name, "can not be blank")
+      person.dog.errors.add(:breed, "can not be nil")
+      person.errors.to_s.should eq("name can not be blank, dog breed can not be nil")
+    end
+  end
+
   describe "#to_hash" do
     it "to_hash returns the error messages hash" do
       person = Person.new
