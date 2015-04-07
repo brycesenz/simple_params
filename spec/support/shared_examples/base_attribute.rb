@@ -1,4 +1,5 @@
-shared_examples 'a base attribute' do
+shared_examples "a base attribute" do
+
   let(:base_attribute) { described_class.new(simple_param_attribute) }
 
   describe 'base_attribute' do
@@ -15,3 +16,4 @@ shared_examples 'a base attribute' do
     end
   end
 end
+
