@@ -21,7 +21,7 @@ module SimpleParams
       end
 
       nested_attributes.each do |nested_attribute|
-        docs << Attribute.new(nested_attribute).to_s
+        docs << NestedAttribute.new(nested_attribute).to_s
       end
 
       docs.join("\n")

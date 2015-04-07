@@ -157,14 +157,14 @@ describe SimpleParams::Params do
     it "generates valida api_pie documentation" do
       documentation = AcceptanceParams.api_pie_documentation
       api_docs = <<-API_PIE_DOCS
-        param:reference, Object, desc:''
+        param:reference, Object, desc:'', required: false
         param :name, String, desc: '', required: true
-        param :age, Integer, desc: ''
+        param :age, Integer, desc: '', required: false
         param :color, String, desc: '', required: true
         param :address, Hash, desc: '', required: true do
           param :street, String, desc: '', required: true
           param :city, String, desc: '', required: true
-          param :zip_code, String, desc: ''
+          param :zip_code, String, desc: '', required: false
           param :state, String, desc: '', required: true
         end
       API_PIE_DOCS

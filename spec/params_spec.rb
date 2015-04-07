@@ -293,14 +293,14 @@ describe SimpleParams::Params do
       documentation = DummyParams.api_pie_documentation
       api_docs = <<-API_PIE_DOCS
                   param :name, String, desc: '', required: true
-                  param :age, Integer, desc: ''
+                  param :age, Integer, desc: '', required: false
                   param :first_initial, String, desc: '', required: true
-                  param :amount, desc: ''
+                  param :amount, desc: '', required: false
                   param :color, String, desc: '', required: true
                   param :address, Hash, desc: '', required: true do
                     param :street, String, desc: '', required: true
                     param :city, String, desc: '', required: true
-                    param :zip_code, String, desc: ''
+                    param :zip_code, String, desc: '', required: false
                     param :state, String, desc: '', required: true
                   end
                   param :phone, Hash, desc: '', required: true do
