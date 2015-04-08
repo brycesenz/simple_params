@@ -15,10 +15,29 @@ class AcceptanceParams < SimpleParams::Params
 end
 
 describe SimpleParams::Params do
+  describe "original_params", original_params: true do
+    it "returns symbolized params hash" do
+      params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
+      params.original_params.should eq({
+        name: "Tom", 
+        address: { 
+          street: "1 Main St."
+        }
+      })
+    end
+
+    it "returns symbolized params for nested_hash" do
+      params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
+      params.address.original_params.should eq({
+        street: "1 Main St."
+      })
+    end
+  end
+
   describe "accessors", accessors: true do
     let(:params) { AcceptanceParams.new }
 
-    it "has getter and setter methods for object param", failing: true do
+    it "has getter and setter methods for object param" do
       params.should respond_to(:reference)
       params.reference.should be_nil
       new_object = OpenStruct.new(count: 4)

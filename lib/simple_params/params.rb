@@ -132,6 +132,12 @@ module SimpleParams
       (defined_attributes.keys + nested_hashes.keys).flatten
     end
 
+    def original_params
+      @original_params ||= {}
+    end
+    alias_method :original_hash, :original_params
+    alias_method :raw_params, :original_params
+
     # Overriding this method to allow for non-strict enforcement!
     def method_missing(method_name, *arguments, &block)
       if strict_enforcement?
@@ -171,7 +177,18 @@ module SimpleParams
     end
 
     def hash_to_symbolized_hash(hash)
-      hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+      hash.inject({}){|result, (key, value)|
+        new_key = case key
+                  when String then key.to_sym
+                  else key
+                  end
+        new_value = case value
+                    when Hash then hash_to_symbolized_hash(value)
+                    else value
+                    end
+        result[new_key] = new_value
+        result
+      }
     end
 
     def defined_attributes
