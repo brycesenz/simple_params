@@ -88,12 +88,12 @@ params = MyParams.new(
 )
 
 params.valid? #=> false
-params.errors[:name] #=> ["can't be blank"] 
-params.errors[:address][:street] #=> ["can't be blank"] 
-params.address.errors[:street] #=> ["can't be blank"] 
+params.errors[:name] #=> ["can't be blank"]
+params.errors[:address][:street] #=> ["can't be blank"]
+params.address.errors[:street] #=> ["can't be blank"]
 
-params.errors.as_json #=> {:name=>["can't be blank"], :address=>{:street=>["can't be blank"]}} 
-params.address.errors.as_json #=> {:street=>["can't be blank"]}  
+params.errors.as_json #=> {:name=>["can't be blank"], :address=>{:street=>["can't be blank"]}}
+params.address.errors.as_json #=> {:street=>["can't be blank"]}
 ```
 
 ## Defaults
@@ -138,7 +138,7 @@ params = CoercionParams.new(name: "Bob", age: "21", date_of_birth: "June 1st, 19
 params.name #=> "Bob"
 params.age #=> 21
 params.date_of_birth #=> #<Date: 1980-06-01>
-params.pocket_change #=> #<BigDecimal:89ed240,'0.235E1',18(18)> 
+params.pocket_change #=> #<BigDecimal:89ed240,'0.235E1',18(18)>
 ```
 
 SimpleParams also provide helper methods for implicitly specifying the type, if you prefer that syntax.  Here is the same class as above, but redefined with these helper methods.
@@ -192,6 +192,40 @@ params.dog.name #=> "Bailey"
 params.dog.breed #=> "Shiba Inu"
 ```
 
+# ApiPie Documentation
+
+If your project is using [apipie-rails](http://example.com/ "apipie-rails"),
+then SimpleParams is able to automatically generate the documentation markup
+for apipie.
+
+```ruby
+api :POST, '/objects', "Create a object"
+eval(CreateObjectParams.api_pie_documentation)
+```
+
+Note that in your SimpleParams class you can specify a few options on how the markup will be
+created.
+
+They include:
+```ruby
+document: false # Will not document this parameter. Default is true
+optional: true # This parameter is not required. Default is false
+desc: 'description of parameter' # Default is blank
+```
+
+Example:
+
+```ruby
+class CreateObjectParams < SimpleParams::Params
+  param :user, type: User, document: false
+  param :name, type: :string, desc: 'Name of object', validations: { presence: true }
+
+  nested_hash :other_object do
+    param :color, optional: true, validations: { presence: true }
+    param :size, desc: 'Size of object', 'validations: { presence: true }
+  end
+end
+```
 
 ## Contributing
 
