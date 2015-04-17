@@ -3,7 +3,7 @@ require 'spec_helper'
 class AcceptanceParams < SimpleParams::Params
   param :reference, type: :object, optional: true
   param :name
-  param :age, type: :integer, optional: true
+  param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
 
   nested_hash :address do
@@ -164,7 +164,7 @@ describe SimpleParams::Params do
     describe "#validate!" do
       let(:params) { AcceptanceParams.new }
 
-      it "raises error with valdiation descriptions" do
+      it "raises error with validation descriptions" do
         expect { params.validate! }.to raise_error(SimpleParamsError,
           "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}}"
         )
