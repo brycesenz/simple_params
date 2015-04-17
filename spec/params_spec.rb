@@ -72,7 +72,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = DummyParams.new
-      params.attributes.should eq([:name, :age, :first_initial, :amount, :color, :address, :phone])
+      params.attributes.should eq([:name, :age, :first_initial, :amount, :color, :height, :address, :phone])
     end
   end
 
@@ -120,6 +120,23 @@ describe SimpleParams::Params do
         params[:address][:city].should eq("Asheville")
         params["address"]["city"].should eq("Asheville")
       end
+    end
+  end
+
+  describe "optional params with inclusion" do
+    let(:params) do
+      DummyParams.new(
+        name: "Bill",
+        age: 30,
+        address: {
+          city: "Greenville"
+        }
+      )
+    end
+
+    it "allows optional params to be nil with inclusion" do
+      params.should_not be_valid
+      params.errors[:height].should be_empty
     end
   end
 
@@ -297,6 +314,7 @@ describe SimpleParams::Params do
                   param :first_initial, String, desc: '', required: true
                   param :amount, desc: '', required: false
                   param :color, String, desc: '', required: true
+                  param :height, String, desc: '', required: false
                   param :address, Hash, desc: '', required: true do
                     param :street, String, desc: '', required: true
                     param :city, String, desc: '', required: true
