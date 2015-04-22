@@ -11,5 +11,6 @@ require 'simple_params/api_pie_doc/attribute_base'
 require 'simple_params/api_pie_doc/attribute'
 require 'simple_params/api_pie_doc/nested_attribute'
 require 'simple_params/custom_matchers/have_required_param'
+require 'simple_params/custom_matchers/have_optional_param'
 require 'simple_params/test_custom_matchers/dummy_class'
 
