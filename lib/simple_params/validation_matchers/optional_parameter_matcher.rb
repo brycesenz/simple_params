@@ -13,6 +13,10 @@ module SimpleParams
       def description
         "allow #{@attribute} to be nil"
       end
+
+      def with_default
+        
+      end
     end
   end
 end

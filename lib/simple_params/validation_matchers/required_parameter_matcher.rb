@@ -15,6 +15,10 @@ module SimpleParams
       def description
         "require #{@attribute} to be set"
       end
+
+      def with_default
+        
+      end
     end
   end
 end
