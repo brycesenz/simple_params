@@ -4,6 +4,7 @@ class DummyParams < SimpleParams::Params
   string_param :first_initial, default: lambda { |params, param| params.name[0] if params.name.present? }
   decimal_param :amount, optional: true, default: 0.10, formatter: lambda { |params, param| param.round(2) }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}, formatter: :lower_case_colors
+  string_param :height, optional: true, validations: { inclusion: { in: ["tall","supertall"]} }
 
   nested_hash :address do
     string_param :street

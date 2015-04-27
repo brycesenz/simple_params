@@ -10,5 +10,5 @@ I18n.config.enforce_available_locales = true
 
 RSpec.configure do |config|
   config.mock_with :rspec
-  config.include(SimpleParams::CustomMatchers)
+  config.include(SimpleParams::ValidationMatchers)
 end
