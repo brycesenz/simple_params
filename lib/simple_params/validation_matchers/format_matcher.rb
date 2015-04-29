@@ -9,12 +9,11 @@ module SimpleParams
 
       def initialize(attribute)
         super(attribute)
-        @attribute = attribute
-        @default_value = nil
+        @unformatted_value = nil
       end
 
       def with_value(value)
-        @default_value = value
+        @unformatted_value = value
         self
       end
 
@@ -25,30 +24,23 @@ module SimpleParams
 
       def matches?(subject)
         super(subject)
-
-        @subject = subject
-
-        format_into? == @expected_value
-        
+        @subject.send("#{@attribute}=", @unformatted_value)
+        @subject.send(attribute) == @expected_value
       end
 
       def description
-        "Expect #{@attribute} with_value #{@default_value} to format into #{@expected_value}"
+        "Expect #{@attribute} with_value #{@unformatted_value} to format into #{@expected_value}"
       end
 
       def failure_message_for_should
-        "Shouldn't expect #{@attribute} with_value #{@default_value} to format into #{@expected_value}"
+        "Shouldn't expect #{@attribute} with_value #{@unformatted_value} to format into #{@expected_value}"
       end
 
       def failure_message_for_should_not
-        "Expected #{@attribute} with_value #{@default_value} to not format into #{@expected_value}"
+        "Expected #{@attribute} with_value #{@unformatted_value} to not format into #{@expected_value}"
       end
 
       private
-
-      def format_into?
-        @subject.instance_variable_get("@#{attribute}_attribute").instance_variable_get(:@formatter).call('',default_value)
-      end
     end
   end
 end

@@ -9,7 +9,6 @@ module SimpleParams
 
       def initialize(attribute)
         super(attribute)
-        @attribute = attribute
         @default_value = nil
       end
 
@@ -36,7 +35,7 @@ module SimpleParams
       private
 
       def matches_default_value?
-        @subject.send("#{attribute}") == default_value
+        @subject.send(@attribute) == @default_value
       end
     end
   end
