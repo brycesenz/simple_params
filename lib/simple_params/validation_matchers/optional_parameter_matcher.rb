@@ -35,17 +35,17 @@ module SimpleParams
       end
 
       def failure_message_for_should
-        "Expected with_default to yield #{@default_value.inspect} &&&&&&&&&&&&&&&&&&&&&  #{@subject.inspect}********************** #{attribute} 000000000 #{self.default_value} +++++++ #{@subject.title}"
+        "Expected with_default to yield #{@default_value}"
       end
 
       def failure_message_for_should_not
-        "Not expected"
+        "Not expected yield #{@default_value}"
       end
 
       private
 
       def matches_default_value?
-        @subject..to_s == self.default_value 
+        @subject.send("#{attribute}") == default_value 
       end
     end
   end

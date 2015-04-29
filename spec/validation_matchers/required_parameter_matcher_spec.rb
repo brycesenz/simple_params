@@ -4,7 +4,7 @@ describe SimpleParams::ValidationMatchers::RequiredParameterMatcher do
   class RequiredParameterMatcherTestClass < SimpleParams::Params
     param :name
     param :age, optional: true
-    param :title, optional: true, default: "programmer"
+    param :title, default: "programmer"
   end
 
   subject { RequiredParameterMatcherTestClass.new }

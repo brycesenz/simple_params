@@ -5,9 +5,11 @@ module SimpleParams
     end
 
     class RequiredParameterMatcher < ValidationMatcher
+      attr_accessor :default_value, :attribute
 
       def initialize(attribute)
         super(attribute)
+        @attribute = attribute
         @default_value = nil
       end
 
@@ -21,7 +23,7 @@ module SimpleParams
         @expected_message ||= :blank
 
         if @default_value
-          allows_value_of(nil, @expected_message) && allows_default_value
+          matches_default_value?
         else
           disallows_value_of(nil, @expected_message)
         end
@@ -33,8 +35,8 @@ module SimpleParams
 
       private
 
-      def allows_default_value
-        @default_value
+      def matches_default_value?
+        @subject.send("#{attribute}") == default_value
       end
     end
   end
