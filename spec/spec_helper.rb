@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'simple_params'
+require 'shoulda/matchers'
 require 'pry'
 
 Dir[File.join('.', 'spec', 'support', '**', '*.rb')].each {|f| require f}
