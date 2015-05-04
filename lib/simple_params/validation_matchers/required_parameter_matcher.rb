@@ -5,12 +5,13 @@ module SimpleParams
     end
 
     class RequiredParameterMatcher < ValidationMatcher
-      attr_accessor :default_value, :attribute
+      attr_accessor :default_value, :attribute, :allowed_values
 
       def initialize(attribute)
         super(attribute)
         @default_value = nil
         @attribute = attribute
+        @allowed_values = nil
       end
 
       def with_default(value)
@@ -30,7 +31,7 @@ module SimpleParams
         if @default_value
           matches_default_value?
         elsif @allowed_values
-          disallows_value_of(nil) || matches_allowed_values?
+          disallows_value_of(nil) && matches_allowed_values?
         else
           disallows_value_of(nil, @expected_message)
         end
@@ -55,7 +56,9 @@ module SimpleParams
       end
 
       def matches_allowed_values?
-        allowed_values.include?(@subject.send(@attribute))
+        allowed_values.all? do |value|
+          allows_value_of(value)
+        end
       end
     end
   end

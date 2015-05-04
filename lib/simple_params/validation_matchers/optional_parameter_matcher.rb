@@ -10,7 +10,8 @@ module SimpleParams
       def initialize(attribute)
         super(attribute)
         @default_value = nil
-        @allowed_values = []
+        @attribute = attribute
+        @allowed_values = nil
       end
 
       def with_default(value)
@@ -29,7 +30,7 @@ module SimpleParams
         if @default_value
           matches_default_value?
         elsif @allowed_values
-          allows_value_of(nil) || matches_allowed_values?
+          allows_value_of(nil) && matches_allowed_values?
         else
           allows_value_of(nil)
         end
@@ -55,7 +56,9 @@ module SimpleParams
       end
 
       def matches_allowed_values?
-        allowed_values.include?(@subject.send(@attribute))
+        allowed_values.all? do |value|
+          allows_value_of(value)
+        end
       end
     end
   end
