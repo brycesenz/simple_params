@@ -27,11 +27,11 @@ module SimpleParams
       end
 
       def failure_message_for_should
-        "Expected #{@attribute} to be non-numeric value #{@subject.send(@attribute).inspect}"
+        "Expected #{@attribute} to be non-numeric value"
       end
 
       def failure_message_for_should_not
-        "Expected #{@default_value} not to be nil or to be one of"
+        "Expected #{@attribute} to be numeric value"
       end
     end
   end
