@@ -33,7 +33,7 @@ module SimpleParams
       end
 
       def failure_message_for_should
-        "Shouldn't expect #{@attribute} with_value #{@unformatted_value} to format into #{@expected_value}"
+        "Expect #{@attribute} with_value #{@unformatted_value} to format into #{@expected_value}"
       end
 
       def failure_message_for_should_not
