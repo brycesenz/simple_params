@@ -6,7 +6,7 @@ describe SimpleParams::ValidationMatchers::OptionalParameterMatcher do
     param :age, optional: true, default: 37
     param :title, optional: true, default: "programmer"
     param :account_type, default: "checking", validations: { inclusion: { in: ["checking", "savings"] }}
-    param :account_status, optional: true, validations: { inclusion: { in: ["active, inactive"] }}
+    param :account_status, optional: true, validations: { inclusion: { in: ["active", "inactive"] }}
   end
 
   subject { OptionalParameterMatcher.new }
@@ -16,5 +16,4 @@ describe SimpleParams::ValidationMatchers::OptionalParameterMatcher do
   it { should have_optional_parameter(:title).with_default("programmer") }
   it { should have_optional_parameter(:account_status).with_allowed_values("active", "inactive") }
   it { should have_optional_parameter(:account_type).with_default("checking").with_allowed_values("checking", "savings") }
-
 end

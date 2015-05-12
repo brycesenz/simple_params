@@ -1,6 +1,6 @@
 module SimpleParams
   module ValidationMatchers
-    def coerc_param(attr)
+    def coerce_param(attr)
       CoercionMatcher.new(attr)
     end
 
@@ -20,8 +20,9 @@ module SimpleParams
       def matches?(subject)
         super(subject)
         
-        @expected_coerce.capitalize.to_s == @subject.send("#{@attribute}_attribute").instance_eval{@type}.to_s
-  
+        #TODO: This method of checking this violates encapsulation.
+        attribute = @subject.send("#{@attribute}_attribute")
+        @expected_coerce.capitalize.to_s == attribute.instance_eval{@type}.to_s
       end
 
       def description
