@@ -19,6 +19,7 @@ module SimpleParams
 
     attr_reader :parent
     attr_reader :name
+    attr_reader :type
 
     def initialize(parent, name, opts={})
       @parent = parent

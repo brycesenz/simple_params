@@ -19,10 +19,14 @@ module SimpleParams
 
       def matches?(subject)
         super(subject)
-        
-        #TODO: This method of checking this violates encapsulation.
-        attribute = @subject.send("#{@attribute}_attribute")
-        @expected_coerce.capitalize.to_s == attribute.instance_eval{@type}.to_s
+
+        compare_type = @expected_coerce.capitalize.to_s
+
+        if compare_type == "Decimal"
+          compare_type = "BigDecimal"
+        end
+
+        compare_type == @subject.send("#{@attribute}_attribute").type.to_s
       end
 
       def description
