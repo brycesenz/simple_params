@@ -7,6 +7,20 @@ module SimpleParams
     class CoercionMatcher < ValidationMatcher
       attr_accessor :attribute
 
+      TYPE_MAPPINGS = {
+      integer: Integer,
+      string: String,
+      decimal: BigDecimal,
+      datetime: DateTime,
+      date: Date,
+      time: Time,
+      float: Float,
+      boolean: Axiom::Types::Boolean, # See note on Virtus
+      array: Array,
+      hash: Hash,
+      object: Object
+      }
+
       def initialize(attribute)
         super(attribute)
         @attribute = attribute
@@ -19,14 +33,46 @@ module SimpleParams
 
       def matches?(subject)
         super(subject)
-
-        compare_type = @expected_coerce.capitalize.to_s
-
-        if compare_type == "Decimal"
-          compare_type = "BigDecimal"
+        
+        case @expected_coerce
+        when :integer
+          @subject.send("#{@attribute}=", "100.02")
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:integer])
+        when :string
+          @subject.send("#{@attribute}=", 200)
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:string])
+        when :decimal
+          @subject.send("#{@attribute}=", "100")
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:decimal])
+        when :datetime 
+          @subject.send("#{@attribute}=", DateTime.new(2014,2,3))
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:datetime])
+        when :date
+          @subject.send("#{@attribute}=", Date.new(2014,2,3))
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:date])
+        when :time
+          @subject.send("#{@attribute}=", Time.new(2007,11,5,11,21,0, "-05:00"))
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:time])
+        when :float
+          @subject.send("#{@attribute}=", "20")
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:float])
+        when :boolean
+          @subject.send("#{@attribute}=", 0)
+          @subject.send(attribute).is_a?(TrueClass) || @subject.send(attribute).is_a?(FalseClass)
+        when :array
+          @subject.send("#{@attribute}=", "red, green, blue")
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:array])
+        when :hash
+          @subject.send("#{@attribute}=", "dog"=>1, "cat"=>2, "fish"=>3)
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:hash])
+        when :object
+          @subject.send("#{@attribute}=", "programmer")
+          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:object])
+        else
+          false
         end
 
-        compare_type == @subject.send("#{@attribute}_attribute").type.to_s
+
       end
 
       def description
