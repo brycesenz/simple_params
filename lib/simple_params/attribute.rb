@@ -3,20 +3,6 @@ require "virtus"
 
 module SimpleParams
   class Attribute
-    TYPE_MAPPINGS = {
-      integer: Integer,
-      string: String,
-      decimal: BigDecimal,
-      datetime: DateTime,
-      date: Date,
-      time: Time,
-      float: Float,
-      boolean: Axiom::Types::Boolean, # See note on Virtus
-      array: Array,
-      hash: Hash,
-      object: Object
-    }
-
     attr_reader :parent
     attr_reader :name
 
