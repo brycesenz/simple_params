@@ -227,6 +227,17 @@ class CreateObjectParams < SimpleParams::Params
 end
 ```
 
+# RSpec Validation Matchers
+
+If you would like to use Simple Params built in matchers, make sure you have RSpec 
+installed. Once RSpec is installed add this to your spec_helper.rb file
+
+```ruby
+RSpec.configure do |config|
+  config.include(SimpleParams::ValidationMatchers)
+end
+```
+
 ## Contributing
 
 1. Fork it
