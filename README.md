@@ -12,7 +12,7 @@ This class provides the following benefits for handling params:
 
 Add this line to your application's Gemfile:
 
-    gem 'simple_params', '~> 0.0.1pre'
+    gem 'simple_params'
 
 And then execute:
 
