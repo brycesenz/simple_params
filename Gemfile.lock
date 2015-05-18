@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple_params (0.0.2.pre9)
+    simple_params (0.0.4)
       activemodel (>= 3.0, < 5.0)
       shoulda-matchers (~> 2.8)
       virtus (>= 1.0.0)
