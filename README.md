@@ -96,6 +96,20 @@ params.errors.as_json #=> {:name=>["can't be blank"], :address=>{:street=>["can'
 params.address.errors.as_json #=> {:street=>["can't be blank"]}
 ```
 
+Custom validate methods can also be added, just as with an ActiveModel object
+```ruby
+class MyParams < SimpleParams::Params
+  param :name
+  validate :name_has_letters
+
+  def name_has_letters
+    if name.present? && !(name =~ /^[a-zA-Z]*$/)
+      errors.add(:name, "must only contain letters")
+    end
+  end
+end
+```
+
 ## Defaults
 
 It is easy to set simple or complex defaults, with either a static value or a Proc

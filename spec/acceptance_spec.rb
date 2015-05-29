@@ -5,12 +5,19 @@ class AcceptanceParams < SimpleParams::Params
   param :name
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
+  validate :name_has_letters
 
   nested_hash :address do
     param :street
     param :city, validations: { length: { in: 4..40 } }
     param :zip_code, optional: true
     param :state, default: "North Carolina"
+  end
+
+  def name_has_letters
+    if name.present? && !(name =~ /^[a-zA-Z]*$/)
+      errors.add(:name, "must only contain letters")
+    end
   end
 end
 
@@ -136,6 +143,12 @@ describe SimpleParams::Params do
     it "validates presence of required param" do
       params.should_not be_valid
       params.errors[:name].should eq(["can't be blank"])
+    end
+
+    it "runs custom validate methods" do
+      params.name = "!!!"
+      params.should_not be_valid
+      params.errors[:name].should eq(["must only contain letters"])
     end
 
     it "does not validate presence of optional param" do
