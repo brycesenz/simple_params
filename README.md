@@ -252,6 +252,153 @@ RSpec.configure do |config|
 end
 ```
 
+# Testing with Validation Matchers
+
+Simple Params includes the following validation matchers:
+CoercionMatcher, FormatMatcher, NestedParameterMatcher, OptionalParameterMatcher, and RequiredParameterMatcher
+
+#CoercionMatcher
+
+Example:
+
+Class to test
+
+```ruby
+  class YourClass < SimpleParams::Params
+    param :name, type: :string
+    param :expiration_date, type: :date
+    param :amount, type: :integer
+  end
+```
+Test using Coercion Matcher
+
+```ruby
+  describe YourClass do
+    it { should coerce_param(:name).into(:string) }
+    it { should_not coerce_param(:name).into(:integer) }
+    it { should coerce_param(:expiration_date).into(:date) }
+    it { should_not coerce_param(:expiration_date).into(:string) }
+    it { should coerce_param(:amount).into(:integer) }
+    it { should_not coerce_param(:amount).into(:float) }
+  end
+```
+
+#FormatMatcher
+
+Example:
+
+Class to test
+
+```ruby
+  class YourClass < SimpleParams::Params
+    param :amount, type: :float, formatter: lambda { |params, amt| sprintf('%.2f', amt) }
+    param :expiration_date, type: :date, formatter: lambda { |params, date| date.strftime("%Y-%m")}
+    param :cost, type: :float, formatter: lambda { |params, amt| sprintf('%.2f', amt) }
+  end
+```
+Test using FormatMatcher
+
+```ruby
+describe YourClass do
+  it { should format(:amount).with_value(10).into("10.00") }
+  it { should format(:expiration_date).with_value(Date.new(2014, 2, 4)).into("2014-02") }
+  it { should_not format(:cost).with_value(12).into("14.00") }
+end
+```
+
+#NestedParameterMatcher
+
+Example:
+
+Class to test
+
+```ruby
+  class YourClass < SimpleParams::Params
+    param :name
+    param :age, optional: true, default: 37
+    param :title, optional: true, default: "programmer"
+    param :account_type, default: "checking", validations: { inclusion: { in: ["checking", "savings"] }}
+    param :account_status, optional: true, validations: { inclusion: { in: ["active", "inactive"] }}
+    nested_param :billing_address do
+      param :first_name
+      param :last_name
+      param :company, optional: true
+      param :street
+      param :city
+      param :state
+      param :zip_code
+      param :country
+    end
+```
+
+Test using NestedParameterMatcher
+
+```ruby
+describe YourClass do 
+  it { should have_nested_parameter(:billing_address) }
+  it { should_not have_nested_parameter(:broken) } 
+end
+```
+
+Note that OptionalParameterMatcher and RequiredParameterMatcher have with_default and with_allowed_values options
+
+#OptionalParameterMatcher
+
+Example:
+
+Class to test
+
+```ruby
+class YourClass < SimpleParams::Params
+    param :name
+    param :age, optional: true, default: 37
+    param :title, optional: true, default: "programmer"
+    param :account_type, default: "checking", validations: { inclusion: { in: ["checking", "savings"] }}
+    param :account_status, optional: true, validations: { inclusion: { in: ["active", "inactive"] }}
+  end
+```
+
+Test using OptionalParameterMatcher
+
+```ruby
+describe YourClass do
+  it { should_not have_optional_parameter(:name) }
+  it { should have_optional_parameter(:age).with_default(37) }
+  it { should have_optional_parameter(:title).with_default("programmer") }
+  it { should have_optional_parameter(:account_status).with_allowed_values("active", "inactive") }
+  it { should have_optional_parameter(:account_type).with_default("checking").with_allowed_values("checking", "savings") }
+end
+```
+
+#RequiredParameterMatcher
+
+Example:
+
+Class to test
+
+```ruby
+class YourClass < SimpleParams::Params
+    param :name
+    param :age, optional: true
+    param :title, default: "programmer"
+    param :account_type, validations: { inclusion: { in: ["checking", "savings"] }}
+    param :account_status, default: "active", validations: { inclusion: { in: ["active", "inactive"] }}
+  end
+```
+
+Test using RequiredParameterMatcher
+
+```ruby
+describe YourClass do
+  it { should have_required_parameter(:name) }
+  it { should_not have_required_parameter(:age) }
+  it { should_not have_required_parameter(:name).with_default("Matthew") }
+  it { should have_required_parameter(:title).with_default("programmer") }
+  it { should have_required_parameter(:account_type).with_allowed_values("checking", "savings") }
+  it { should have_required_parameter(:account_status).with_default("active").with_allowed_values("active", "inactive") }
+end
+```
+
 ## Contributing
 
 1. Fork it
