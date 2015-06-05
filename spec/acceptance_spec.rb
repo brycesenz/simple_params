@@ -199,8 +199,17 @@ describe SimpleParams::Params do
         }
       end
 
-      it "is valid" do
-        AcceptanceParams.new(params).should be_valid
+      it "is valid after multiple times" do
+        acceptance_params = AcceptanceParams.new(params)
+        acceptance_params.should be_valid
+        acceptance_params.should be_valid
+      end
+
+      it "is invalidated if validity changes after initial assignment" do
+        acceptance_params = AcceptanceParams.new(params)
+        acceptance_params.should be_valid
+        acceptance_params.name = nil
+        acceptance_params.should_not be_valid
       end
     end
   end
