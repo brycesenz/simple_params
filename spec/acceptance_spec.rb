@@ -12,6 +12,7 @@ class AcceptanceParams < SimpleParams::Params
     param :city, validations: { length: { in: 4..40 } }
     param :zip_code, optional: true
     param :state, default: "North Carolina"
+    param :company, optional: true
   end
 
   def name_has_letters
@@ -183,6 +184,25 @@ describe SimpleParams::Params do
         )
       end
     end
+
+    describe "acceptance cases" do
+      let(:params) do
+        {
+          name: "Tom", 
+          age: 41,
+          address: { 
+            street: "1 Main St.",
+            city: "Chicago",
+            state: "IL",
+            zip_code: 33440
+          }
+        }
+      end
+
+      it "is valid" do
+        AcceptanceParams.new(params).should be_valid
+      end
+    end
   end
 
   describe "api_pie_documentation", api_pie_documentation: true do
@@ -198,6 +218,7 @@ describe SimpleParams::Params do
           param :city, String, desc: '', required: true
           param :zip_code, String, desc: '', required: false
           param :state, String, desc: '', required: true
+          param :company, String, desc: '', required: false
         end
       API_PIE_DOCS
 
