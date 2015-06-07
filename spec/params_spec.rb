@@ -292,6 +292,11 @@ describe SimpleParams::Params do
         model.nested.should be_a(SimpleParams::Params)
       end
 
+      it "allows undefined nested params, and name class correctly" do
+        model = DummyParams.new(nested: { some_value: 1 } )
+        model.nested.class.name.should eq("DummyParams::Nested")
+      end
+
       it "allows accessors for nested attributes" do
         model = DummyParams.new(nested: { some_value: 1 } )
         model.nested.some_value.should eq(1)

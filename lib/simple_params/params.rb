@@ -50,7 +50,7 @@ module SimpleParams
 
       def nested_hash(name, opts={}, &block)
         attr_accessor name
-        nested_class = define_nested_class(opts, &block)
+        nested_class = define_nested_class(name, opts, &block)
         @nested_hashes ||= {}
         @nested_hashes[name.to_sym] = nested_class
       end
@@ -88,16 +88,12 @@ module SimpleParams
         validates name, validations unless validations.empty?
       end
 
-      def define_nested_class(options, &block)
+      def define_nested_class(name, options, &block)
+        klass_name = name.to_s.split('_').collect(&:capitalize).join
         Class.new(Params).tap do |klass|
-          name_function = Proc.new {
-            def self.model_name
-              ActiveModel::Name.new(self, nil, "temp")
-            end
-          }
-          klass.class_eval(&name_function)
           klass.class_eval(&block)
-          klass.class_eval("self.options = options")
+          klass.class_eval("self.options = #{options}")
+          self.const_set(klass_name, klass)
         end
       end
     end
@@ -146,7 +142,7 @@ module SimpleParams
         if @original_params.include?(method_name.to_sym)
           value = @original_params[method_name.to_sym]
           if value.is_a?(Hash)
-            define_anonymous_class(value)
+            define_anonymous_class(method_name, value)
           else
             Attribute.new(self, method_name).value = value
           end
@@ -206,17 +202,15 @@ module SimpleParams
       end
     end
 
-    def define_anonymous_class(hash)
-      klass = Class.new(Params).tap do |k|
-        name_function = Proc.new {
-          def self.model_name
-            ActiveModel::Name.new(self, nil, "temp")
-          end
-        }
-        k.class_eval(&name_function)
+    def define_anonymous_class(name, hash)
+      klass_name = name.to_s.split('_').collect(&:capitalize).join
+      anonymous_klass = Class.new(Params).tap do |klass|
+        # Have to undefine, then redefine, this const in order to avoid warnings.
+        self.class.send(:remove_const, klass_name) if self.class.const_defined?(klass_name)
+        self.class.const_set(klass_name, klass)
       end
-      klass.allow_undefined_params
-      klass.new(hash)
+      anonymous_klass.allow_undefined_params
+      anonymous_klass.new(hash)
     end
   end
 end

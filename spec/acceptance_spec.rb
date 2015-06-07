@@ -42,6 +42,20 @@ describe SimpleParams::Params do
     end
   end
 
+  describe "nested_class", nested_class: true do
+    it "names nested class correctly" do
+      nested = AcceptanceParams.new.address
+      name = nested.class.name
+      name.should eq("AcceptanceParams::Address")
+    end
+
+    # it "names nested class model_class correctly" do
+    #   nested = AcceptanceParams.new.address
+    #   name = nested.model_class
+    #   name.should eq("")
+    # end
+  end
+
   describe "accessors", accessors: true do
     let(:params) { AcceptanceParams.new }
 
