@@ -84,7 +84,19 @@ module SimpleParams
 
       def add_validations(name, opts = {})
         validations = opts[:validations] || {}
-        opts[:optional] ? validations.merge!(presence: false, allow_nil: true) : validations.merge!(presence: true)
+        has_default = opts.has_key?(:default) # checking has_key? because :default may be nil
+        optional = opts[:optional]
+        if !validations.empty?
+          if optional || has_default
+            validations.merge!(allow_nil: true)
+          else
+            validations.merge!(presence: true)
+          end
+        else
+          if !optional && !has_default
+            validations.merge!(presence: true)
+          end
+        end
         validates name, validations unless validations.empty?
       end
 

@@ -40,7 +40,7 @@ describe SimpleParams::ApiPieDoc::NestedAttribute do
 
   describe '#to_s' do
     specify 'should return properly formatted string' do
-      expect(nested_attribute.to_s).to eq("param :address, Hash, desc: 'i like pie', required: true do\nparam :street, String, desc: '', required: true\nparam :city, String, desc: '', required: true\nparam :zip_code, String, desc: '', required: false\nparam :state, String, desc: '', required: true\nend")
+      expect(nested_attribute.to_s).to eq("param :address, Hash, desc: 'i like pie', required: true do\nparam :street, String, desc: '', required: true\nparam :city, String, desc: '', required: true\nparam :zip_code, String, desc: '', required: false\nparam :state, String, desc: '', required: false\nend")
     end
   end
 end

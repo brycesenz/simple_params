@@ -5,6 +5,10 @@ module SimpleParams
   class Attribute
     attr_reader :parent
     attr_reader :name
+    attr_reader :type
+    attr_reader :default
+    attr_reader :validations
+    attr_reader :formatter
 
     def initialize(parent, name, opts={})
       @parent = parent
@@ -13,11 +17,12 @@ module SimpleParams
       @value = nil
       @default = opts[:default]
       @formatter = opts[:formatter]
+      @validations = opts[:validations] || {}
     end
 
     def raw_value
       empty = @value.nil? || (@value.is_a?(String) && @value.blank?)
-      empty ? default : @value
+      empty ? raw_default : @value
     end
 
     def value
@@ -39,7 +44,7 @@ module SimpleParams
     end
 
   private
-    def default
+    def raw_default
       if @default.is_a?(Proc)
         @default.call(parent, self)
       else

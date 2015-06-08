@@ -105,6 +105,10 @@ describe SimpleParams::Attribute do
     context "with static default" do
       let(:model) { described_class.new(house, "color", { default: "something" })}
 
+      it "has default attr_reader" do
+        model.default.should eq("something")
+      end
+
       it "uses default when value not set" do
         model.value.should eq("something")
       end
@@ -116,6 +120,10 @@ describe SimpleParams::Attribute do
       end
       let(:model) { described_class.new(house, "color", { default: default })}
 
+      it "has default attr_reader" do
+        model.default.should eq(default)
+      end
+
       it "uses default when value not set" do
         model.value.should eq("My house rocks!")
       end
@@ -125,6 +133,10 @@ describe SimpleParams::Attribute do
   describe "formatter" do
     context "with function reference" do
       let(:model) { described_class.new(house, "color", { formatter: :capitalize })}
+
+      it "has formatter attr_reader" do
+        model.formatter.should eq(:capitalize)
+      end
 
       it "uses method formatter from parent" do
         model.value = "lower"
@@ -139,9 +151,31 @@ describe SimpleParams::Attribute do
 
       let(:model) { described_class.new(house, "color", { formatter: formatter })}
 
+      it "has formatter attr_reader" do
+        model.formatter.should eq(formatter)
+      end
+
       it "uses Proc formatter on value" do
         model.value = "rocks"
         model.value.should eq("My house ROCKS")
+      end
+    end
+  end
+
+  describe "validations" do
+    context "without validations" do
+      let(:model) { described_class.new(house, "color", {})}
+
+      it "has empty hash as validations" do
+        model.validations.should eq({})
+      end
+    end
+
+    context "with validations" do
+      let(:model) { described_class.new(house, "color", { validations: { presence: true } })}
+
+      it "has validations hash" do
+        model.validations.should eq({ presence: true })
       end
     end
   end

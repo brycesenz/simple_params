@@ -15,12 +15,10 @@ module SimpleParams
     NotValidValueError = Class.new(StandardError)
 
     def requirement_description
-      value = options[:optional]
-      case value
-      when true
+      optional = options[:optional]
+      has_default = options.has_key?(:default)
+      if optional || has_default
         "required: false"
-      when false
-        "required: true"
       else
         "required: true"
       end

@@ -49,11 +49,11 @@ describe SimpleParams::Params do
       name.should eq("AcceptanceParams::Address")
     end
 
-    # it "names nested class model_class correctly" do
-    #   nested = AcceptanceParams.new.address
-    #   name = nested.model_class
-    #   name.should eq("")
-    # end
+    it "names nested class model_class correctly" do
+      nested = AcceptanceParams.new.address
+      name = nested.class.name
+      name.should eq("AcceptanceParams::Address")
+    end
   end
 
   describe "accessors", accessors: true do
@@ -102,6 +102,21 @@ describe SimpleParams::Params do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
       params.attributes.should eq([:reference, :name, :age, :color, :address])
+    end
+
+    it "returns array of attribute symbols for nested class" do
+      params = AcceptanceParams::Address.new
+      params.attributes.should eq([:street, :city, :zip_code, :state, :company])
+    end
+
+    it "initializes attributes correctly" do
+      params = AcceptanceParams.new
+      attribute = params.instance_variable_get("@age_attribute")
+      attribute.parent.should eq(params)
+      attribute.name.should eq(:age)
+      attribute.type.should eq(Integer)
+      attribute.formatter.should be_nil
+      attribute.validations.should eq({ inclusion: { in: 18..100 }, allow_nil: true })
     end
   end
 
@@ -235,12 +250,12 @@ describe SimpleParams::Params do
         param:reference, Object, desc:'', required: false
         param :name, String, desc: '', required: true
         param :age, Integer, desc: '', required: false
-        param :color, String, desc: '', required: true
+        param :color, String, desc: '', required: false
         param :address, Hash, desc: '', required: true do
           param :street, String, desc: '', required: true
           param :city, String, desc: '', required: true
           param :zip_code, String, desc: '', required: false
-          param :state, String, desc: '', required: true
+          param :state, String, desc: '', required: false
           param :company, String, desc: '', required: false
         end
       API_PIE_DOCS
