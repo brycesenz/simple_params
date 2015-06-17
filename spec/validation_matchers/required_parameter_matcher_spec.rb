@@ -7,6 +7,7 @@ describe SimpleParams::ValidationMatchers::RequiredParameterMatcher do
     param :title, default: "programmer"
     param :account_type, validations: { inclusion: { in: ["checking", "savings"] }}
     param :account_status, default: "active", validations: { inclusion: { in: ["active", "inactive"] }}
+    param :username, type: :string, validations: { exclusion: { in: ['admin', 'demo'] } }
   end
 
   subject { RequiredParameterMatcherTestClass.new }
@@ -17,4 +18,5 @@ describe SimpleParams::ValidationMatchers::RequiredParameterMatcher do
   it { should have_required_parameter(:title).with_default("programmer") }
   it { should have_required_parameter(:account_type).with_allowed_values("checking", "savings") }
   it { should have_required_parameter(:account_status).with_default("active").with_allowed_values("active", "inactive") }
+  it { should have_required_parameter(:username).with_disallowed_values("admin", "demo") }
 end
