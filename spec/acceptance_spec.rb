@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 class AcceptanceParams < SimpleParams::Params
+  allow_undefined_params
   param :reference, type: :object, optional: true
   param :name
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
@@ -23,6 +24,14 @@ class AcceptanceParams < SimpleParams::Params
 end
 
 describe SimpleParams::Params do
+  describe "model_name", model_name: true do
+    it "has an ActiveModel name" do
+      params = AcceptanceParams.new
+      params.class.model_name.should be_a(ActiveModel::Name)
+      params.class.model_name.to_s.should eq("AcceptanceParams")
+    end
+  end
+
   describe "original_params", original_params: true do
     it "returns symbolized params hash" do
       params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
@@ -46,6 +55,12 @@ describe SimpleParams::Params do
     it "names nested class correctly" do
       nested = AcceptanceParams.new.address
       name = nested.class.name
+      name.should eq("AcceptanceParams::Address")
+    end
+
+    it "has correct model_name" do
+      nested = AcceptanceParams.new.address
+      name = nested.class.model_name.to_s
       name.should eq("AcceptanceParams::Address")
     end
 
@@ -240,6 +255,26 @@ describe SimpleParams::Params do
         acceptance_params.name = nil
         acceptance_params.should_not be_valid
       end
+    end
+  end
+
+  describe "anonymous params", anonymous_params: true do
+    it "accepts anonymous params with simple values" do
+      params = AcceptanceParams.new(random: "some_other_value")
+      params.random.should eq("some_other_value")
+    end
+
+    it "accepts anonymous params hashes and creates Params class" do
+      params = AcceptanceParams.new(random: { a: "1", b: "2"})
+      params.random.should be_a(SimpleParams::Params)
+      params.random.a.should eq("1")
+      params.random.b.should eq("2")
+    end
+
+    it "accepts anonymous params hashes and names class correctly" do
+      params = AcceptanceParams.new(random: { a: "1", b: "2"})
+      params.random.class.name.to_s.should eq("AcceptanceParams::Random")
+      params.random.class.model_name.to_s.should eq("AcceptanceParams::Random")
     end
   end
 

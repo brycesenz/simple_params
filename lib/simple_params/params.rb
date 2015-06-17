@@ -103,6 +103,9 @@ module SimpleParams
       def define_nested_class(name, options, &block)
         klass_name = name.to_s.split('_').collect(&:capitalize).join
         Class.new(Params).tap do |klass|
+          # def self.model_name 
+          #   ActiveModel::Name.new(self)
+          # end
           klass.class_eval(&block)
           klass.class_eval("self.options = #{options}")
           self.const_set(klass_name, klass)
@@ -217,8 +220,12 @@ module SimpleParams
     def define_anonymous_class(name, hash)
       klass_name = name.to_s.split('_').collect(&:capitalize).join
       anonymous_klass = Class.new(Params).tap do |klass|
-        # Have to undefine, then redefine, this const in order to avoid warnings.
-        self.class.send(:remove_const, klass_name) if self.class.const_defined?(klass_name)
+        if self.class.const_defined?(klass_name)
+          begin
+            self.class.send(:remove_const, klass_name)
+          rescue NameError
+          end
+        end
         self.class.const_set(klass_name, klass)
       end
       anonymous_klass.allow_undefined_params
