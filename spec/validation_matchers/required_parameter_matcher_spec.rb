@@ -18,5 +18,7 @@ describe SimpleParams::ValidationMatchers::RequiredParameterMatcher do
   it { should have_required_parameter(:title).with_default("programmer") }
   it { should have_required_parameter(:account_type).with_allowed_values("checking", "savings") }
   it { should have_required_parameter(:account_status).with_default("active").with_allowed_values("active", "inactive") }
+  it { should have_required_parameter(:account_status).with_disallowed_values("admin", "demo") }
+  it { should have_required_parameter(:username).with_allowed_values("myuser", "kitten") }
   it { should have_required_parameter(:username).with_disallowed_values("admin", "demo") }
 end

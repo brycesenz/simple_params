@@ -17,5 +17,7 @@ describe SimpleParams::ValidationMatchers::OptionalParameterMatcher do
   it { should have_optional_parameter(:title).with_default("programmer") }
   it { should have_optional_parameter(:account_status).with_allowed_values("active", "inactive") }
   it { should have_optional_parameter(:account_type).with_default("checking").with_allowed_values("checking", "savings") }
+  it { should have_optional_parameter(:account_type).with_disallowed_values("admin", "demo") }
+  it { should have_optional_parameter(:username).with_default("test").with_allowed_values("myuser", "kitten") }
   it { should have_optional_parameter(:username).with_disallowed_values("admin", "demo") }
 end
