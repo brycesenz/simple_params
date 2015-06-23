@@ -5,6 +5,7 @@ module SimpleParams
   class Params
     include Virtus.model
     include ActiveModel::Validations
+    extend ActiveModel::Naming
     include SimpleParams::Validations
 
     TYPES = [
@@ -30,6 +31,10 @@ module SimpleParams
       end
 
       attr_accessor :strict_enforcement, :options
+
+      def model_name
+        ActiveModel::Name.new(self)
+      end
 
       def api_pie_documentation
         SimpleParams::ApiPieDoc.new(self).build
@@ -103,12 +108,10 @@ module SimpleParams
       def define_nested_class(name, options, &block)
         klass_name = name.to_s.split('_').collect(&:capitalize).join
         Class.new(Params).tap do |klass|
-          # def self.model_name 
-          #   ActiveModel::Name.new(self)
-          # end
+          self.const_set(klass_name, klass)
+          extend ActiveModel::Naming
           klass.class_eval(&block)
           klass.class_eval("self.options = #{options}")
-          self.const_set(klass_name, klass)
         end
       end
     end
@@ -126,7 +129,7 @@ module SimpleParams
 
       # Errors
       @nested_params = nested_hashes.keys
-      @errors = SimpleParams::Errors.new(self, @nested_params)
+      # @errors = SimpleParams::Errors.new(self, @nested_params)
 
       # Nested Classes
       set_accessors(params)
@@ -163,6 +166,10 @@ module SimpleParams
       end
 
       hash
+    end
+
+    def errors
+      @errors ||= SimpleParams::Errors.new(self, @nested_params)
     end
 
     # Overriding this method to allow for non-strict enforcement!
