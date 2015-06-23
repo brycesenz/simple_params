@@ -51,6 +51,25 @@ describe SimpleParams::Params do
     end
   end
 
+  describe "to_hash", to_hash: true do
+    it "returns params hash" do
+      params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
+      params.to_hash.should eq({
+        reference: nil,
+        name: "Tom", 
+        age: nil,
+        color: "red",
+        address: { 
+          street: "1 Main St.",
+          city: nil,
+          zip_code: nil,
+          state: "North Carolina",
+          company: nil
+        }
+      })
+    end
+  end
+
   describe "nested_class", nested_class: true do
     it "names nested class correctly" do
       nested = AcceptanceParams.new.address

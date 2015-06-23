@@ -149,6 +149,22 @@ module SimpleParams
     alias_method :original_hash, :original_params
     alias_method :raw_params, :original_params
 
+    def to_hash
+      hash = {}
+      # self.class.defined_attributes.each_pair do |key, opts|
+      #   hash[key.to_sym] = send(key)
+      # end
+      attributes.each do |attribute|
+        if send(attribute).is_a?(SimpleParams::Params)
+          hash[attribute] = send(attribute).to_hash
+        else
+          hash[attribute] = send(attribute)
+        end
+      end
+
+      hash
+    end
+
     # Overriding this method to allow for non-strict enforcement!
     def method_missing(method_name, *arguments, &block)
       if strict_enforcement?
