@@ -358,7 +358,7 @@ describe SimpleParams::Params do
   end
 
   describe "api_pie_documentation", api_pie_documentation: true do
-    it "generates valida api_pie documentation" do
+    it "generates valid api_pie documentation" do
       documentation = DummyParams.api_pie_documentation
       api_docs = <<-API_PIE_DOCS
                   param :name, String, desc: '', required: true
@@ -377,6 +377,10 @@ describe SimpleParams::Params do
                     param :cell_phone, desc: '', required: false
                     param :phone_number, String, desc: '', required: true
                     param :area_code, String, desc: '', required: false
+                  end
+                  param :dogs, Array, desc: '', required: true do
+                    param :name, String, desc: '', required: true
+                    param :age, Integer, desc: '', required: true
                   end
                 API_PIE_DOCS
 

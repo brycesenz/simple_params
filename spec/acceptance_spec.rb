@@ -6,6 +6,7 @@ class AcceptanceParams < SimpleParams::Params
   param :name
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
+  param :sibling_names, type: :array, optional: true
   validate :name_has_letters
 
   nested_hash :address do
@@ -18,7 +19,7 @@ class AcceptanceParams < SimpleParams::Params
 
   nested_array :dogs do
     param :name
-    param :age, validations: { inclusion: { in: 1..20 } }
+    param :age, type: :integer, validations: { inclusion: { in: 1..20 } }
   end
 
   def name_has_letters
@@ -64,6 +65,7 @@ describe SimpleParams::Params do
         name: "Tom", 
         age: nil,
         color: "red",
+        sibling_names: nil,
         address: { 
           street: "1 Main St.",
           city: nil,
@@ -141,7 +143,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :age, :color, :address, :dogs])
+      params.attributes.should eq([:reference, :name, :age, :color, :sibling_names, :address, :dogs])
     end
 
     it "returns array of attribute symbols for nested class" do
@@ -311,12 +313,17 @@ describe SimpleParams::Params do
         param :name, String, desc: '', required: true
         param :age, Integer, desc: '', required: false
         param :color, String, desc: '', required: false
+        param :sibling_names, Array, desc: '', required: false
         param :address, Hash, desc: '', required: true do
           param :street, String, desc: '', required: true
           param :city, String, desc: '', required: true
           param :zip_code, String, desc: '', required: false
           param :state, String, desc: '', required: false
           param :company, String, desc: '', required: false
+        end
+        param :dogs, Array, desc: '', required: true do
+          param :name, String, desc: '', required: true
+          param :age, Integer, desc: '', required: true
         end
       API_PIE_DOCS
 

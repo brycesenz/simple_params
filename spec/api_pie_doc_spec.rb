@@ -16,8 +16,17 @@ describe SimpleParams::ApiPieDoc do
       expect(api_pie_doc.nested_hashes.keys).to eq [:address, :phone]
     end
 
+    specify "should give object nested_arrays" do
+      expect(api_pie_doc.nested_arrays.keys).to eq [:dogs]
+    end
+
     specify "should call #build_nested_attributes" do
       expect_any_instance_of(SimpleParams::ApiPieDoc).to receive(:build_nested_attributes)
+      api_pie_doc
+    end
+
+    specify "should call #build_nested_array_attributes" do
+      expect_any_instance_of(SimpleParams::ApiPieDoc).to receive(:build_nested_array_attributes)
       api_pie_doc
     end
 
@@ -25,6 +34,11 @@ describe SimpleParams::ApiPieDoc do
       expect(api_pie_doc.nested_attributes.flat_map(&:keys)).to include(:address, :phone)
       expect(api_pie_doc.nested_attributes[0].values.flat_map(&:keys)).to eq [:street, :city, :zip_code, :state]
       expect(api_pie_doc.nested_attributes[1].values.flat_map(&:keys)).to eq [:cell_phone, :phone_number, :area_code]
+    end
+
+    specify "should give object nested_array_attributes" do
+      expect(api_pie_doc.nested_array_attributes.flat_map(&:keys)).to include(:dogs)
+      expect(api_pie_doc.nested_array_attributes[0].values.flat_map(&:keys)).to eq [:name, :age]
     end
 
     specify "should give object docs" do
