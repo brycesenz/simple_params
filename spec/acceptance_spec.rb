@@ -16,6 +16,11 @@ class AcceptanceParams < SimpleParams::Params
     param :company, optional: true
   end
 
+  nested_array :dogs do
+    param :name
+    param :age, validations: { inclusion: { in: 1..20 } }
+  end
+
   def name_has_letters
     if name.present? && !(name =~ /^[a-zA-Z]*$/)
       errors.add(:name, "must only contain letters")
@@ -65,7 +70,8 @@ describe SimpleParams::Params do
           zip_code: nil,
           state: "North Carolina",
           company: nil
-        }
+        },
+        dogs: []
       })
     end
   end
@@ -135,7 +141,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :age, :color, :address])
+      params.attributes.should eq([:reference, :name, :age, :color, :address, :dogs])
     end
 
     it "returns array of attribute symbols for nested class" do

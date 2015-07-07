@@ -66,11 +66,22 @@ module SimpleParams
         @nested_hashes ||= {}
       end
 
+      def nested_array(name, opts={}, &block)
+        attr_accessor name
+        nested_array_class = define_nested_class(name, opts, &block)
+        @nested_arrays ||= {}
+        @nested_arrays[name.to_sym] = nested_array_class
+      end
+
+      def nested_arrays
+        @nested_arrays ||= {}
+      end
+
       def defined_attributes
         @define_attributes ||= {}
       end
-      private
 
+      private
       def define_attribute(name, opts = {})
         opts[:type] ||= :string
         defined_attributes[name.to_sym] = opts
@@ -127,13 +138,16 @@ module SimpleParams
       @original_params = hash_to_symbolized_hash(params)
       define_attributes(@original_params)
 
-      # Errors
+      # Nested Hashes
       @nested_params = nested_hashes.keys
-      # @errors = SimpleParams::Errors.new(self, @nested_params)
+
+      # Nested Arrays
+      @nested_arrays = nested_arrays.keys
 
       # Nested Classes
       set_accessors(params)
       initialize_nested_classes
+      initialize_nested_array_classes
     end
 
     def define_attributes(params)
@@ -143,7 +157,7 @@ module SimpleParams
     end
 
     def attributes
-      (defined_attributes.keys + nested_hashes.keys).flatten
+      (defined_attributes.keys + nested_hashes.keys + nested_arrays.keys).flatten
     end
 
     def original_params
@@ -154,9 +168,6 @@ module SimpleParams
 
     def to_hash
       hash = {}
-      # self.class.defined_attributes.each_pair do |key, opts|
-      #   hash[key.to_sym] = send(key)
-      # end
       attributes.each do |attribute|
         if send(attribute).is_a?(SimpleParams::Params)
           hash[attribute] = send(attribute).to_hash
@@ -169,7 +180,17 @@ module SimpleParams
     end
 
     def errors
-      @errors ||= SimpleParams::Errors.new(self, @nested_params)
+      nested_errors_hash = {}
+      @nested_params.each do |param|
+        nested_errors_hash[param.to_sym] = send(param).errors
+      end
+
+      nested_arrays_hash = {}
+      @nested_arrays.each do |array|
+        nested_arrays_hash[array.to_sym] = send(array).map(&:errors)
+      end
+
+      @errors ||= SimpleParams::Errors.new(self, nested_errors_hash, nested_arrays_hash)
     end
 
     # Overriding this method to allow for non-strict enforcement!
@@ -204,7 +225,7 @@ module SimpleParams
     def set_accessors(params={})
       params.each do |attribute_name, value|
         # Don't set accessors for nested classes
-        unless value.is_a?(Hash)
+        unless value.is_a?(Hash) 
           send("#{attribute_name}=", value)
         end
       end
@@ -233,10 +254,25 @@ module SimpleParams
       self.class.nested_hashes
     end
 
+    def nested_arrays
+      self.class.nested_arrays
+    end
+
     def initialize_nested_classes
       nested_hashes.each do |key, klass|
         initialization_params = @original_params[key.to_sym] || {}
         send("#{key}=", klass.new(initialization_params, self))
+      end
+    end
+
+    def initialize_nested_array_classes
+      nested_arrays.each do |key, klass|
+        initialization_params = @original_params[key.to_sym] || []
+        initialization_array = []
+        initialization_params.each do |initialization_param|
+          initialization_array << klass.new(initialization_param, self)
+        end
+        send("#{key}=", initialization_array)
       end
     end
 

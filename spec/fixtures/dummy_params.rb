@@ -27,6 +27,11 @@ class DummyParams < SimpleParams::Params
     }
   end
 
+  nested_array :dogs do
+    param :name
+    param :age, type: :integer, validations: { inclusion: { in: 1..20 } }
+  end
+
   def lower_case_colors(val)
     val.downcase
   end

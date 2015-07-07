@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'fixtures/dummy_params'
 
 describe SimpleParams::Params do
-  describe "strict parameter enforcement" do
+  describe "strict parameter enforcement", param_enforcement: true do
     context "with default handling (strict enforcement)" do
       it "raises error on expected param" do
         expect { DummyParams.new(other_param: 1) }.to raise_error(SimpleParamsError)
@@ -67,12 +67,26 @@ describe SimpleParams::Params do
         params.address.zip_code.should eq("20165")
       end
     end
+
+    describe "nested arrays", nested: true do
+      it "can access nested arrays as arrays" do
+        params.dogs.should respond_to(:first)
+        params.dogs.first.should be_nil
+      end
+
+      it "can access nested arrays as arrays with data", failing: true do
+        params = DummyParams.new(dogs: [{ name: "Spot", age: 20 }])
+        params.dogs.should respond_to(:first)
+        params.dogs.first.should_not be_nil
+        params.dogs.first.name.should eq("Spot")
+      end
+    end
   end
 
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = DummyParams.new
-      params.attributes.should eq([:name, :age, :first_initial, :amount, :color, :height, :address, :phone])
+      params.attributes.should eq([:name, :age, :first_initial, :amount, :color, :height, :address, :phone, :dogs])
     end
   end
 
@@ -123,7 +137,40 @@ describe SimpleParams::Params do
     end
   end
 
-  describe "optional params with inclusion" do
+  describe "validations", validations: true do
+    let(:params) do
+      DummyParams.new(
+        name: nil,
+        age: 30,
+        address: {
+          city: "Greenville"
+        },
+        dogs: [
+          { name: "Spot", age: 12 },
+          { age: 14 }
+        ]
+      )
+    end
+
+    it "validates required params" do
+      params.should_not be_valid
+      params.errors[:name].should eq(["can't be blank"])
+    end
+
+    it "validates nested params" do
+      params.should_not be_valid
+      params.address.errors[:street].should eq(["can't be blank"])
+      params.errors[:address][:street].should eq(["can't be blank"])
+    end
+
+    it "validates nested arrays" do
+      params.should_not be_valid
+      params.errors[:dogs][0][:name].should eq([])
+      params.errors[:dogs][1][:name].should eq(["can't be blank"])
+    end
+  end
+
+  describe "optional params with inclusion", optional_params: true do
     let(:params) do
       DummyParams.new(
         name: "Bill",

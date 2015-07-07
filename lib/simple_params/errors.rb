@@ -2,14 +2,23 @@ require "active_model"
 
 module SimpleParams
   class Errors < ActiveModel::Errors
+    attr_reader :base
 
-    def initialize(base, nested_attributes = [])
+    def initialize(base, nested_hash_errors = {}, nested_array_errors = {})
       super(base)
-      @nested_attributes = symbolize_nested(nested_attributes)
+      @base = base
+      @nested_hash_errors = symbolize_nested(nested_hash_errors)
+      @nested_array_errors = symbolize_nested(nested_array_errors)
     end
 
     def [](attribute)
-      get(attribute.to_sym) || reset_attribute(attribute.to_sym)
+      if is_a_nested_hash_error_attribute?(attribute)
+        set(attribute.to_sym, @nested_hash_errors[attribute.to_sym])
+      elsif is_a_nested_array_error_attribute?(attribute)
+        set(attribute.to_sym, @nested_array_errors[attribute.to_sym])
+      else
+        get(attribute.to_sym) || set(attribute.to_sym, [])
+      end
     end
 
     def []=(attribute, error)
@@ -28,26 +37,18 @@ module SimpleParams
 
     def clear
       super
-      @nested_attributes.each do |attribute|
-        if fetch_nested_attribute(attribute).present?
-          fetch_nested_attribute(attribute).errors.clear
-        end
-      end
+      @nested_hash_errors.map { |attribute, errors| errors.clear }
     end
 
     def empty?
       super &&
-      @nested_attributes.all? do |attribute|
-        if fetch_nested_attribute(attribute).present?
-          fetch_nested_attribute(attribute).errors.empty?
-        end
-      end
+      @nested_hash_errors.all? { |attribute, errors| errors.empty? }
     end
     alias_method :blank?, :empty? 
 
     def include?(attribute)
-      if fetch_nested_attribute(attribute)
-        !fetch_nested_attribute(attribute).errors.empty?
+      if is_a_nested_hash_error_attribute?(attribute)
+        !@nested_hash_errors[attribute.to_sym].empty?
       else
         messages[attribute].present?
       end
@@ -57,21 +58,16 @@ module SimpleParams
 
     def values
       messages.values +
-      @nested_attributes.map do |attribute|
-        if fetch_nested_attribute(attribute).present?
-          fetch_nested_attribute(attribute).errors.values
-        end
+      @nested_hash_errors.map do |attribute, errors|
+        errors.values
       end
     end
 
     def full_messages
       parent_messages = map { |attribute, message| full_message(attribute, message) }
-      nested_messages = @nested_attributes.map do |attribute|
-        if fetch_nested_attribute(attribute)
-          messages = fetch_nested_attribute(attribute).errors.full_messages
-          messages.map do |message|
-            "#{attribute} " + message
-          end
+      nested_messages = @nested_hash_errors.map do |attribute, errors|
+        unless errors.full_messages.nil?
+          errors.full_messages.map { |message| "#{attribute} " + message }
         end
       end
       (parent_messages + nested_messages).flatten
@@ -88,10 +84,10 @@ module SimpleParams
         self.messages.dup
       end
 
-      @nested_attributes.map do |attribute|
-        errors = nested_error_messages(attribute, full_messages)
+      @nested_hash_errors.map do |attribute, errors|
+        error_messages = nested_error_messages(attribute, full_messages)
         unless errors.empty?
-          messages.merge!(attribute.to_sym => errors)
+          messages.merge!(attribute.to_sym => error_messages)
         end
       end
       messages
@@ -104,14 +100,14 @@ module SimpleParams
 
     private
     def nested_error_messages(attribute, full_messages = false)
-      if fetch_nested_attribute(attribute)
-        if full_messages
-          errors = fetch_nested_attribute(attribute).errors
+      if is_a_nested_hash_error_attribute?(attribute)
+        errors = @nested_hash_errors[attribute.to_sym]
+        if full_messages          
           errors.messages.each_with_object({}) do |(attr, array), messages|
             messages[attr] = array.map { |message| errors.full_message(attr, message) }
           end
         else
-          fetch_nested_attribute(attribute).errors.messages.dup
+          errors.messages.dup
         end
       else
         {}
@@ -119,29 +115,23 @@ module SimpleParams
     end
 
     def add_error_to_attribute(attribute, error)
-      if fetch_nested_attribute(attribute)
-        fetch_nested_attribute(attribute).errors[:base] = error
+      if is_a_nested_hash_error_attribute?(attribute)
+        @nested_hash_errors[attribute.to_sym][:base] = error
       else
         self[attribute] << error
       end
     end
 
-    def reset_attribute(attribute)
-      if fetch_nested_attribute(attribute)
-        set(attribute.to_sym, fetch_nested_attribute(attribute).errors) 
-      else
-        set(attribute.to_sym, [])
-      end
+    def is_a_nested_hash_error_attribute?(attribute)
+      @nested_hash_errors.keys.include?(attribute.to_sym)
     end
 
-    def fetch_nested_attribute(attribute)
-      if @nested_attributes.include?(attribute)
-        @base.send(attribute)
-      end
+    def is_a_nested_array_error_attribute?(attribute)
+      @nested_array_errors.keys.include?(attribute.to_sym)
     end
 
     def symbolize_nested(nested)
-      nested.map { |x| x.to_sym }
+      nested.inject({}) { |memo,(k,v) | memo[k.to_sym] = v; memo }
     end
   end
 end

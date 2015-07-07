@@ -4,7 +4,10 @@ describe SimpleParams::Errors do
   class Person
     extend ActiveModel::Naming
     def initialize
-      @errors = SimpleParams::Errors.new(self, ["dog"])
+      @errors = SimpleParams::Errors.new(self, 
+        { dog: dog.errors }, 
+        { cats: cats_errors }, 
+      )
     end
 
     attr_accessor :name, :age
@@ -12,6 +15,14 @@ describe SimpleParams::Errors do
 
     def dog
       @dog ||= Dog.new
+    end
+
+    def cats
+      @cats ||= [Cat.new]
+    end
+
+    def cats_errors
+      cats.map { |cat| cat.errors }
     end
 
     def read_attribute_for_validation(attr)
@@ -49,7 +60,30 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "setting and getting errors" do
+  class Cat
+    extend ActiveModel::Naming
+    def initialize
+      @errors = SimpleParams::Errors.new(self)
+    end
+
+    attr_accessor :name
+    attr_accessor :age
+    attr_reader   :errors
+
+    def read_attribute_for_validation(attr)
+      send(attr)
+    end
+
+    def self.human_attribute_name(attr, options = {})
+      attr
+    end
+
+    def self.lookup_ancestors
+      [self]
+    end
+  end
+
+  describe "setting and getting errors", setters_getters: true do
     it "get returns the errors for the provided key" do
       errors = SimpleParams::Errors.new(self)
       errors[:foo] = "omg"
@@ -105,7 +139,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "setting and getting nested error model" do
+  describe "setting and getting nested error model", nested_model: true do
     it "can access error model" do
       person = Person.new
       dog = person.dog
@@ -152,7 +186,55 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#clear" do
+  describe "setting and getting nested array error model", nested_array: true do
+    it "can access error model" do
+      person = Person.new
+      cats = person.cats
+      cat_errors = cats.first.errors
+      person.errors[:cats][0].should eq(cat_errors)
+    end
+
+    it "can add to nested errors through []", failing: true do
+      person = Person.new
+      person.errors[:cats].first[:base] = 'should not be nil' 
+      person.errors[:cats].first[:base].should eq(['should not be nil']) 
+      person.cats.first.errors[:base].should eq(['should not be nil'])
+    end
+
+    it "can add to nested errors through add" do
+      person = Person.new
+      person.errors[:cats].first.add(:age, 'should not be nil')
+      person.cats.first.errors[:age].should eq(['should not be nil'])
+    end
+
+    it "can add multiple errors to nested errors through []" do
+      person = Person.new
+      person.errors[:cats].first[:name] = 'should not be nil'
+      person.errors[:cats].first[:name] = 'must be cute'
+      person.cats.first.errors[:name].should eq(['should not be nil', 'must be cute'])
+    end
+
+    it "can add multiple errors to nested errors through add" do
+      person = Person.new
+      person.errors[:cats].first.add(:name, 'should not be nil')
+      person.errors[:cats].first.add(:name, 'must be cute')
+      person.cats.first.errors[:name].should eq(['should not be nil', 'must be cute'])
+    end
+
+    it "can add individual errors to nested attributes through []" do
+      person = Person.new
+      person.errors[:cats][0][:age] = 'should not be nil'
+      person.cats.first.errors[:age].should eq(['should not be nil'])
+    end
+
+    it "can add individual errors to nested attributes through add" do
+      person = Person.new
+      person.errors[:cats].first.add(:age, 'should not be nil')
+      person.cats.first.errors[:age].should eq(['should not be nil'])
+    end
+  end
+
+  describe "#clear", clear: true do
     it "clears errors" do
       person = Person.new
       person.errors[:name] = 'should not be nil'
@@ -173,7 +255,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#empty?, #blank?, and #include?" do
+  describe "#empty?, #blank?, and #include?", empty: true do
     it "is empty without any errors" do
       person = Person.new
       person.errors.should be_empty
@@ -201,7 +283,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#added?" do
+  describe "#added?", added: true do
     it "added? detects if a specific error was added to the object" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
@@ -246,7 +328,7 @@ describe SimpleParams::Errors do
     end    
   end
 
-  describe "#size" do
+  describe "#size", size: true do
     it "size calculates the number of error messages" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
@@ -260,7 +342,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#to_a" do
+  describe "#to_a", to_a: true do
     it "to_a returns the list of errors with complete messages containing the attribute names" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
@@ -276,7 +358,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#to_s" do
+  describe "#to_s", to_s: true do
     it "to_a returns the list of errors with complete messages containing the attribute names" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
@@ -292,8 +374,8 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#to_hash" do
-    it "to_hash returns the error messages hash" do
+  describe "#to_hash", to_hash: true do
+    it "to_hash returns the error messages hash", hash_failing: true do
       person = Person.new
       person.errors.add(:name, "can not be blank")
       person.errors.to_hash.should eq({ name: ["can not be blank"] })
@@ -328,7 +410,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#as_json" do
+  describe "#as_json", as_json: true do
     it "as_json creates a json formatted representation of the errors hash" do
       person = Person.new
       person.errors[:name] = 'can not be nil'
@@ -368,7 +450,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#full_messages" do
+  describe "#full_messages", full_messages: true do
     it "full_messages creates a list of error messages with the attribute name included" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
@@ -408,7 +490,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#generate_message" do
+  describe "#generate_message", generate_message: true do
     it "generate_message works without i18n_scope" do
       person = Person.new
       Person.should_not respond_to(:i18n_scope)
@@ -418,7 +500,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#adds_on_empty" do
+  describe "#adds_on_empty", add_on_empty: true do
     it "add_on_empty generates message" do
       person = Person.new
       person.errors.should_receive(:generate_message).with(:name, :empty, {})
@@ -446,7 +528,7 @@ describe SimpleParams::Errors do
     end
   end
 
-  describe "#adds_on_blank" do
+  describe "#adds_on_blank", add_on_blank: true do
     it "add_on_blank generates message" do
       person = Person.new
       person.errors.should_receive(:generate_message).with(:name, :blank, {})

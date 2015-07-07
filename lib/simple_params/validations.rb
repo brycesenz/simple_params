@@ -14,6 +14,11 @@ module SimpleParams
         nested_class = send("#{key}") 
         nested_class.valid?
       end
+
+      nested_arrays.each do |key, array|
+        nested_array = send("#{key}") 
+        nested_array.each { |a| a.valid? }
+      end
       errors.empty?
     ensure
       self.validation_context = current_context
