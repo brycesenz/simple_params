@@ -59,7 +59,19 @@ describe SimpleParams::Params do
 
   describe "to_hash", to_hash: true do
     it "returns params hash" do
-      params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
+      params = AcceptanceParams.new(
+        name: "Tom", 
+        address: { 
+          "street" => "1 Main St."
+        },
+        dogs: [
+          {
+            name: "Spot",
+            age: 8
+          }
+        ]
+      )
+
       params.to_hash.should eq({
         reference: nil,
         name: "Tom", 
@@ -73,7 +85,12 @@ describe SimpleParams::Params do
           state: "North Carolina",
           company: nil
         },
-        dogs: []
+        dogs: [
+          {
+            name: "Spot",
+            age: 8
+          }
+        ]
       })
     end
   end

@@ -169,8 +169,15 @@ module SimpleParams
     def to_hash
       hash = {}
       attributes.each do |attribute|
-        if send(attribute).is_a?(SimpleParams::Params)
+        raw_attribute = send(attribute)
+        if raw_attribute.is_a?(SimpleParams::Params)
           hash[attribute] = send(attribute).to_hash
+        elsif raw_attribute.is_a?(Array)
+          attribute_array = []
+          raw_attribute.each do |r_attr|
+            attribute_array << r_attr.to_hash
+          end
+          hash[attribute] = attribute_array
         else
           hash[attribute] = send(attribute)
         end
