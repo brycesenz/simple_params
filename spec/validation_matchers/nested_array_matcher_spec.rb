@@ -1,17 +1,9 @@
 require 'spec_helper'
+require 'fixtures/validator_params'
 
 describe SimpleParams::ValidationMatchers::NestedArrayMatcher do
-  class NestedArrayMatcherTestClass < SimpleParams::Params
-    param :name
-    param :age, optional: true, default: 37
-    nested_array :dogs do
-      param :name
-      param :age, type: :integer
-    end
-  end
-
-  subject { NestedArrayMatcherTestClass.new }
+  subject { ValidatorParams.new }
 
   it { should have_nested_array(:dogs) }
-  it { should_not have_nested_array(:broken) } 
+  it { should_not have_nested_array(:address) } 
 end

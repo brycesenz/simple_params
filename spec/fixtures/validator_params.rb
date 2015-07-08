@@ -1,10 +1,23 @@
-class DummyParams < SimpleParams::Params
+class ValidatorParams < SimpleParams::Params
   string_param :name
-  integer_param :age, optional: true
+  integer_param :age, optional: true, default: 37
   string_param :first_initial, default: lambda { |params, param| params.name[0] if params.name.present? }
   decimal_param :amount, optional: true, default: 0.10, formatter: lambda { |params, param| param.round(2) }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}, formatter: :lower_case_colors
-  string_param :height, optional: true, validations: { inclusion: { in: ["tall","supertall"]} }
+  param :height, optional: true, validations: { inclusion: { in: ["tall","supertall"]} }
+  param :birth_date, type: :date
+  param :born_on, type: :datetime
+  param :bank_balance, type: :float, formatter: lambda { |params, amt| sprintf('$%.2f', amt) }
+  param :weight, type: :decimal
+  param :favorite_colors, type: :array
+  param :pets, type: :hash
+  param :car, type: :object
+  param :submitted_at, type: :time
+  param :has_cellphone, type: :boolean
+  param :title, optional: true, default: "programmer"
+  param :account_type, default: "checking", validations: { inclusion: { in: ["checking", "savings"] }}
+  param :account_status, default: "active", validations: { inclusion: { in: ["active", "inactive"] }}
+  param :username, type: :string, validations: { exclusion: { in: ['admin', 'demo'] } }
 
   nested_hash :address do
     string_param :street
@@ -28,7 +41,7 @@ class DummyParams < SimpleParams::Params
   end
 
   nested_array :dogs do
-    param :name, formatter: lambda { |params, name| name.upcase }
+    param :name
     param :age, type: :integer, validations: { inclusion: { in: 1..20 } }
   end
 

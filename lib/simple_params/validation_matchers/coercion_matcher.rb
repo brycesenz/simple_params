@@ -24,41 +24,41 @@ module SimpleParams
         when :integer
           @subject.send("#{@attribute}=", "100.02")
           (@subject.send(attribute) == 100) &&
-          (@subject.send(attribute).is_a?(TYPE_MAPPINGS[:integer]))
+          @subject.send("raw_#{attribute}").is_a?(TYPE_MAPPINGS[:integer])
         when :string
           @subject.send("#{@attribute}=", 200)
           (@subject.send(attribute) == "200") &&
-          (@subject.send(attribute).is_a?(TYPE_MAPPINGS[:string]))
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:string])
         when :decimal
           @subject.send("#{@attribute}=", "100")
           (@subject.send(attribute) == 100.0) &&
-          (@subject.send(attribute).is_a?(TYPE_MAPPINGS[:decimal]))
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:decimal])
         when :datetime 
           @subject.send("#{@attribute}=", DateTime.new(2014,2,3))
-          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:datetime])
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:datetime])
         when :date
-          @subject.send("#{@attribute}=", Date.new(2014,2,3))
-          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:date])
+          @subject.send("#{@attribute}=", DateTime.new(2014,2,3,12,0,0))
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:date])
         when :time
           @subject.send("#{@attribute}=", Time.new(2007,11,5,11,21,0, "-05:00"))
-          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:time])
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:time])
         when :float
           @subject.send("#{@attribute}=", "20")
-          (@subject.send(attribute) == 20.0) &&
-          (@subject.send(attribute).is_a?(TYPE_MAPPINGS[:float]))
+          (@subject.send("raw_#{attribute}") == 20.0) &&
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:float])
         when :boolean
           @subject.send("#{@attribute}=", 0)
           (@subject.send(attribute) == false) &&
-          (@subject.send(attribute).is_a?(TrueClass) || @subject.send(attribute).is_a?(FalseClass))
+          (@subject.send("raw_#{attribute}").is_a?(TrueClass) || @subject.send("raw_#{attribute}").is_a?(FalseClass))
         when :array
           @subject.send("#{@attribute}=", ["red, green, blue"])
-          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:array])
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:array])
         when :hash
           @subject.send("#{@attribute}=", { "dog"=>1, "cat"=>2, "fish"=>3 })
-          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:hash])
+          class_matches(@subject.send("raw_#{attribute}"), TYPE_MAPPINGS[:hash])
         when :object
           @subject.send("#{@attribute}=", "programmer")
-          @subject.send(attribute).is_a?(TYPE_MAPPINGS[:object])
+          @subject.send("raw_#{attribute}").is_a?(TYPE_MAPPINGS[:object])
         else
           false
         end
@@ -79,6 +79,9 @@ module SimpleParams
       end
 
       private
+      def class_matches(target, comparison)
+        target.class.name.to_s == comparison.name.to_s
+      end
     end
   end
 end

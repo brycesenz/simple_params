@@ -74,11 +74,43 @@ describe SimpleParams::Params do
         params.dogs.first.should be_nil
       end
 
-      it "can access nested arrays as arrays with data", failing: true do
+      it "can access nested arrays as arrays with data" do
         params = DummyParams.new(dogs: [{ name: "Spot", age: 20 }])
         params.dogs.should respond_to(:first)
         params.dogs.first.should_not be_nil
-        params.dogs.first.name.should eq("Spot")
+        params.dogs.first.name.should eq("SPOT")
+      end
+    end
+  end
+
+  describe "accessors", accessors: true do
+    let(:params) { DummyParams.new(dogs: [{}]) }
+
+    it "can access raw values for non-formatted param" do
+      params.name = "Tom"
+      params.name.should eq("Tom")
+      params.raw_name.should eq("Tom")
+    end
+
+    it "can access raw values for formatted param" do
+      params.amount = 1.095
+      params.amount.should eq(1.10)
+      params.raw_amount.should eq(1.095)
+    end
+
+    describe "nested params", nested: true do
+      it "can access raw values for formatted param" do
+        params.address.state = "SC"
+        params.address.state.should eq("South Carolina")
+        params.address.raw_state.should eq("SC")
+      end
+    end
+
+    describe "nested arrays", nested: true do
+      it "can access raw values for formatted param" do
+        params.dogs.first.name = "Fido"
+        params.dogs.first.name.should eq("FIDO")
+        params.dogs.first.raw_name.should eq("Fido")
       end
     end
   end

@@ -92,6 +92,11 @@ module SimpleParams
           attribute.send("value")
         end
 
+        define_method("raw_#{name}") do
+          attribute = send("#{name}_attribute")
+          attribute.send("raw_value")
+        end
+
         define_method("#{name}=") do |val|
           attribute = send("#{name}_attribute")
           attribute.send("value=", val)
