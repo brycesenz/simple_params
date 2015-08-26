@@ -102,9 +102,9 @@ module SimpleParams
           attribute.send("value=", val)
         end
 
-        if opts[:type].to_sym == :date
+        if [Date, 'Date', :date].include?(opts[:type])
           define_date_helper_methods(name)
-        elsif [:time, :datetime].include?(opts[:type].to_sym)
+        elsif [DateTime, 'DateTime', :datetime, Time, 'Time', :time].include?(opts[:type])
           define_datetime_helper_methods(name)
         end
       end
