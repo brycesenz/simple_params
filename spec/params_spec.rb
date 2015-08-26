@@ -406,7 +406,7 @@ describe SimpleParams::Params do
                     param :state, String, desc: '', required: false
                   end
                   param :phone, Hash, desc: '', required: true do
-                    param :cell_phone, desc: '', required: false
+                    param :cell_phone, Boolean, desc: '', required: false
                     param :phone_number, String, desc: '', required: true
                     param :area_code, String, desc: '', required: false
                   end

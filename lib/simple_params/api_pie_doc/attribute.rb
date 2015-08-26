@@ -25,11 +25,13 @@ module SimpleParams
     def type_description
       value = options[:type]
       case value
-      when :string, :integer, :array, :hash, :object
+      when :string, :integer, :array, :hash, :object, :date
         "#{value.to_s.capitalize.constantize}"
-      when 'String', 'Integer', 'Array', 'Hash'
+      when 'String', 'Integer', 'Array', 'Hash', 'Date'
         "#{value}"
-      when :decimal, :datetime, :date, :time, :float, :boolean
+      when :boolean
+        'Boolean'
+      when :decimal, :datetime, :time, :float
         ""
       else
         raise NotValidValueError.new("Must be one of #{SimpleParams::Params::TYPES}")

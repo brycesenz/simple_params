@@ -4,6 +4,8 @@ class AcceptanceParams < SimpleParams::Params
   allow_undefined_params
   param :reference, type: :object, optional: true
   param :name
+  param :date_of_birth, type: :date, optional: true
+  param :current_time, type: :datetime, optional: true
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
   param :sibling_names, type: :array, optional: true
@@ -75,6 +77,8 @@ describe SimpleParams::Params do
       params.to_hash.should eq({
         reference: nil,
         name: "Tom", 
+        date_of_birth: nil,
+        current_time: nil,
         age: nil,
         color: "red",
         sibling_names: nil,
@@ -157,10 +161,34 @@ describe SimpleParams::Params do
     end
   end
 
+  describe "datetime setters", datetime_accessors: true do
+    it "can set date through Rails style date setters" do
+      params = AcceptanceParams.new(
+        "date_of_birth(3i)" => "5", 
+        "date_of_birth(2i)" => "6", 
+        "date_of_birth(1i)" => "1984"
+      )
+      params.date_of_birth.should eq(Date.new(1984, 6, 5))
+    end
+
+    it "can set datetime through Rails style date setters" do
+      params = AcceptanceParams.new(
+        "current_time(6i)" => "56", 
+        "current_time(5i)" => "11", 
+        "current_time(4i)" => "9",
+        "current_time(3i)" => "31", 
+        "current_time(2i)" => "10", 
+        "current_time(1i)" => "2015"
+      )
+      params.current_time.should eq(DateTime.new(2015, 10, 31, 9, 11, 56))
+    end
+  end
+
+
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :age, :color, :sibling_names, :address, :dogs])
+      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :dogs])
     end
 
     it "returns array of attribute symbols for nested class" do
@@ -328,6 +356,8 @@ describe SimpleParams::Params do
       api_docs = <<-API_PIE_DOCS
         param:reference, Object, desc:'', required: false
         param :name, String, desc: '', required: true
+        param :date_of_birth, Date, desc: '', required: false
+        param :current_time, desc: '', required: false
         param :age, Integer, desc: '', required: false
         param :color, String, desc: '', required: false
         param :sibling_names, Array, desc: '', required: false
