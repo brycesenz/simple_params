@@ -83,7 +83,7 @@ describe SimpleParams::Params do
     end
   end
 
-  describe "accessors", accessors: true do
+  describe "raw_values", raw_values: true do
     let(:params) { DummyParams.new(dogs: [{}]) }
 
     it "can access raw values for non-formatted param" do
@@ -170,35 +170,63 @@ describe SimpleParams::Params do
   end
 
   describe "validations", validations: true do
-    let(:params) do
-      DummyParams.new(
-        name: nil,
-        age: 30,
-        address: {
-          city: "Greenville"
-        },
-        dogs: [
-          { name: "Spot", age: 12 },
-          { age: 14 }
-        ]
-      )
+    context "with multiple invalid params" do
+      let(:params) do
+        DummyParams.new(
+          name: nil,
+          age: 30,
+          address: {
+            city: "Greenville"
+          },
+          dogs: [
+            { name: "Spot", age: 12 },
+            { age: 14 }
+          ]
+        )
+      end
+
+      it "validates required params" do
+        params.should_not be_valid
+        params.errors[:name].should eq(["can't be blank"])
+      end
+
+      it "validates nested params" do
+        params.should_not be_valid
+        params.address.errors[:street].should eq(["can't be blank"])
+        params.errors[:address][:street].should eq(["can't be blank"])
+      end
+
+      it "validates nested arrays" do
+        params.should_not be_valid
+        params.errors[:dogs][0][:name].should eq([])
+        params.errors[:dogs][1][:name].should eq(["can't be blank"])
+      end
     end
 
-    it "validates required params" do
-      params.should_not be_valid
-      params.errors[:name].should eq(["can't be blank"])
-    end
+    context "with only invalid nested array", fail: true do
+      let(:params) do
+        DummyParams.new(
+          name: "Bill",
+          age: 30,
+          address: {
+            street: "1 Main St.",
+            city: "Greenville"
+          },
+          phone: {
+            phone_number: "8085551212"
+          },
+          dogs: [
+            { name: "Spot", age: 12 },
+            { age: 14 }
+          ]
+        )
+      end
 
-    it "validates nested params" do
-      params.should_not be_valid
-      params.address.errors[:street].should eq(["can't be blank"])
-      params.errors[:address][:street].should eq(["can't be blank"])
-    end
-
-    it "validates nested arrays" do
-      params.should_not be_valid
-      params.errors[:dogs][0][:name].should eq([])
-      params.errors[:dogs][1][:name].should eq(["can't be blank"])
+      it "validates nested arrays" do
+        params.should_not be_valid
+        params.errors[:dogs][0][:name].should eq([])
+        params.errors[:dogs][1][:name].should eq(["can't be blank"])
+      end
     end
   end
 

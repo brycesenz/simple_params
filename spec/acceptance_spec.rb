@@ -184,7 +184,6 @@ describe SimpleParams::Params do
     end
   end
 
-
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
@@ -279,7 +278,7 @@ describe SimpleParams::Params do
       params.errors[:color].should eq(["is not included in the list"])
     end
 
-    describe "nested params", nested: true do
+    describe "nested hashes", nested_hash: true do
       it "validates presence of required param" do
         params.should_not be_valid
         params.errors[:address][:street].should eq(["can't be blank"])
@@ -288,6 +287,19 @@ describe SimpleParams::Params do
       it "does not validate presence of optional param" do
         params.should_not be_valid
         params.errors[:address][:zip_code].should be_empty
+      end
+    end
+
+    describe "nested arrays", nested_array: true do
+      it "validates presence of required param" do
+        params = AcceptanceParams.new(
+          dogs: [
+            { name: "Max", age: 11 },
+            { name: "Spot" }
+          ]
+        )
+        params.should_not be_valid
+        params.errors[:dogs][1][:age].should eq(["is not included in the list", "can't be blank"])
       end
     end
 
