@@ -195,7 +195,7 @@ describe SimpleParams::Errors do
       person.errors[:cats][0].should eq(cat_errors)
     end
 
-    it "can add to nested errors through []", failing: true do
+    it "can add to nested errors through []" do
       person = Person.new
       person.errors[:cats].first[:base] = 'should not be nil' 
       person.errors[:cats].first[:base].should eq(['should not be nil']) 
@@ -376,7 +376,7 @@ describe SimpleParams::Errors do
   end
 
   describe "#to_hash", to_hash: true do
-    it "to_hash returns the error messages hash", hash_failing: true do
+    it "to_hash returns the error messages hash" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
       person.errors.to_hash.should eq({ name: ["can not be blank"] })

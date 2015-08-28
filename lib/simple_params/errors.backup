@@ -35,15 +35,24 @@ module SimpleParams
     def clear
       super
       @nested_classes.map do |attribute, klass| 
-        run_or_mapped_run(klass) { |k| k.errors.clear }
+        if klass.is_a?(Array)
+          klass.map { |k| k.errors.clear }
+        else
+          klass.errors.clear
+        end
       end
     end
 
     def empty?
       super &&
-      @nested_classes.all? do |attribute, klass|
-        run_or_mapped_run(klass) { |k| k.errors.empty? }
+      @nested_classes.all? do |attribute, klass| 
+        if klass.is_a?(Array)
+          klass.all? { |k| k.errors.empty? }
+        else
+          klass.errors.empty?
+        end
       end
+
     end
     alias_method :blank?, :empty? 
 
@@ -60,16 +69,26 @@ module SimpleParams
     def values
       messages.values +
       @nested_classes.map do |key, klass|
-        run_or_mapped_run(klass) { |k| k.errors.values }
+        if klass.is_a?(Array)
+          klass.map { |k| k.errors.values }
+        else
+          klass.errors.values
+        end
       end
     end
 
     def full_messages
       parent_messages = map { |attribute, message| full_message(attribute, message) }
       nested_messages = @nested_classes.map do |attribute, klass|
-        run_or_mapped_run(klass) do |k|
-          unless k.errors.full_messages.nil?
-            k.errors.full_messages.map { |message| "#{attribute} " + message }
+        if klass.is_a?(Array)
+          klass.map do |k|
+            unless k.errors.full_messages.nil?
+              k.errors.full_messages.map { |message| "#{attribute} " + message }
+            end
+          end
+        else
+          unless klass.errors.full_messages.nil?
+            klass.errors.full_messages.map { |message| "#{attribute} " + message }
           end
         end
       end
@@ -77,15 +96,46 @@ module SimpleParams
     end
 
     def to_hash(full_messages = false)
-      msgs = get_messages(self, full_messages)
+      messages = if full_messages
+        msgs = {}
+        self.messages.each do |attribute, array|
+          msgs[attribute] = array.map { |message| full_message(attribute, message) }
+        end
+        msgs
+      else
+        self.messages.dup
+      end
 
       @nested_classes.map do |attribute, klass|
-        nested_msgs = run_or_mapped_run(klass) { |k| get_messages(k.errors, full_messages) }
-        unless empty_messages?(nested_msgs)
-          msgs.merge!(attribute.to_sym => nested_msgs)
+        if klass.is_a?(Array)
+          error_messages = if full_messages
+            klass.map do |k|
+              k.errors.messages.each_with_object({}) do |(attr, array), messages|
+                messages[attr] = array.map { |message| klass.errors.full_message(attr, message) }
+              end
+            end
+          else
+            klass.map { |k| k.errors.messages.dup }
+          end
+        else
+          error_messages = if full_messages          
+            klass.errors.messages.each_with_object({}) do |(attr, array), messages|
+              messages[attr] = array.map { |message| klass.errors.full_message(attr, message) }
+            end
+          else
+            klass.errors.messages.dup
+          end
+        end
+
+        if error_messages.is_a?(Array) && error_messages.all?(&:empty?)
+          return messages
+        end
+        unless error_messages.nil? || error_messages.empty?
+          messages.merge!(attribute.to_sym => error_messages)
         end
       end
-      msgs
+
+      messages
     end
 
     def to_s(full_messages = false)
@@ -104,7 +154,11 @@ module SimpleParams
 
     def set_nested(attribute)
       klass = nested_class(attribute)
-      errors = run_or_mapped_run(klass) { |k| k.errors }
+      errors = if klass.is_a?(Array)
+        klass.map(&:errors)
+      else
+        klass.errors
+      end
       set(attribute.to_sym, errors)
     end
 
@@ -113,28 +167,6 @@ module SimpleParams
         @nested_classes[attribute].errors.add(:base, error)
       else
         self[attribute] << error
-      end
-    end
-
-    def get_messages(object, full_messages = false)
-      if full_messages
-        object.messages.each_with_object({}) do |(attribute, array), messages|
-          messages[attribute] = array.map { |message| object.full_message(attribute, message) }
-        end
-      else
-        object.messages.dup
-      end
-    end
-
-    def empty_messages?(msgs)
-      msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all?(&:empty?))
-    end
-
-    def run_or_mapped_run(object, *args, &block)
-      if object.is_a?(Array)
-        object.map { |obj, args| yield obj, args }
-      else
-        yield object, args
       end
     end
 
