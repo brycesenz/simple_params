@@ -4,10 +4,7 @@ describe SimpleParams::Errors do
   class Person
     extend ActiveModel::Naming
     def initialize
-      @errors = SimpleParams::Errors.new(self, 
-        { dog: dog.errors }, 
-        { cats: cats_errors }, 
-      )
+      @errors = SimpleParams::Errors.new(self, {dog: dog, cats: cats})
     end
 
     attr_accessor :name, :age
@@ -19,10 +16,6 @@ describe SimpleParams::Errors do
 
     def cats
       @cats ||= [Cat.new]
-    end
-
-    def cats_errors
-      cats.map { |cat| cat.errors }
     end
 
     def read_attribute_for_validation(attr)
@@ -47,6 +40,10 @@ describe SimpleParams::Errors do
     attr_accessor :breed
     attr_reader   :errors
 
+    def id
+      nil
+    end
+
     def read_attribute_for_validation(attr)
       send(attr)
     end
@@ -69,6 +66,10 @@ describe SimpleParams::Errors do
     attr_accessor :name
     attr_accessor :age
     attr_reader   :errors
+
+    def id
+      123
+    end
 
     def read_attribute_for_validation(attr)
       send(attr)
@@ -194,7 +195,7 @@ describe SimpleParams::Errors do
       person.errors[:cats][0].should eq(cat_errors)
     end
 
-    it "can add to nested errors through []", failing: true do
+    it "can add to nested errors through []" do
       person = Person.new
       person.errors[:cats].first[:base] = 'should not be nil' 
       person.errors[:cats].first[:base].should eq(['should not be nil']) 
@@ -375,7 +376,7 @@ describe SimpleParams::Errors do
   end
 
   describe "#to_hash", to_hash: true do
-    it "to_hash returns the error messages hash", hash_failing: true do
+    it "to_hash returns the error messages hash" do
       person = Person.new
       person.errors.add(:name, "can not be blank")
       person.errors.to_hash.should eq({ name: ["can not be blank"] })
@@ -406,6 +407,28 @@ describe SimpleParams::Errors do
           base: ["is invalid"],
           breed: ["can not be nil"]
         }
+      })
+    end
+
+    it "handles nested attributes with base errors and array errors" do
+      person = Person.new
+      person.errors.add(:base, :invalid)
+      person.errors.add(:name, "can not be blank")
+      person.dog.errors.add(:base, :invalid)
+      person.dog.errors.add(:breed, "can not be nil")
+      person.cats.first.errors.add(:name, "can not be blank")
+      person.errors.to_hash.should eq({ 
+        base: ["is invalid"],
+        name: ["can not be blank"],
+        dog: {
+          base: ["is invalid"],
+          breed: ["can not be nil"]
+        },
+        cats: [
+          {
+            name: ["can not be blank"]
+          }
+        ]
       })
     end
   end

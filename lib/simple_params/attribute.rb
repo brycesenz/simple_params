@@ -3,12 +3,8 @@ require "virtus"
 
 module SimpleParams
   class Attribute
-    attr_reader :parent
-    attr_reader :name
-    attr_reader :type
-    attr_reader :default
-    attr_reader :validations
-    attr_reader :formatter
+    attr_reader :parent, :name, :type, :default, 
+      :validations, :formatter
 
     def initialize(parent, name, opts={})
       @parent = parent

@@ -4,18 +4,15 @@ module SimpleParams
   class Errors < ActiveModel::Errors
     attr_reader :base
 
-    def initialize(base, nested_hash_errors = {}, nested_array_errors = {})
+    def initialize(base, nested_classes = {})
       super(base)
       @base = base
-      @nested_hash_errors = symbolize_nested(nested_hash_errors)
-      @nested_array_errors = symbolize_nested(nested_array_errors)
+      @nested_classes = symbolize_nested(nested_classes)
     end
 
     def [](attribute)
-      if is_a_nested_hash_error_attribute?(attribute)
-        set(attribute.to_sym, @nested_hash_errors[attribute.to_sym])
-      elsif is_a_nested_array_error_attribute?(attribute)
-        set(attribute.to_sym, @nested_array_errors[attribute.to_sym])
+      if nested_attribute?(attribute)
+        set_nested(attribute)
       else
         get(attribute.to_sym) || set(attribute.to_sym, [])
       end
@@ -37,18 +34,22 @@ module SimpleParams
 
     def clear
       super
-      @nested_hash_errors.map { |attribute, errors| errors.clear }
+      @nested_classes.map do |attribute, klass| 
+        run_or_mapped_run(klass) { |k| k.errors.clear }
+      end
     end
 
     def empty?
       super &&
-      @nested_hash_errors.all? { |attribute, errors| errors.empty? }
+      @nested_classes.all? do |attribute, klass|
+        run_or_mapped_run(klass) { |k| k.errors.empty? }
+      end
     end
     alias_method :blank?, :empty? 
 
     def include?(attribute)
-      if is_a_nested_hash_error_attribute?(attribute)
-        !@nested_hash_errors[attribute.to_sym].empty?
+      if nested_attribute?(attribute)
+        !nested_class(attribute).errors.empty?
       else
         messages[attribute].present?
       end
@@ -58,39 +59,33 @@ module SimpleParams
 
     def values
       messages.values +
-      @nested_hash_errors.map do |attribute, errors|
-        errors.values
+      @nested_classes.map do |key, klass|
+        run_or_mapped_run(klass) { |k| k.errors.values }
       end
     end
 
     def full_messages
       parent_messages = map { |attribute, message| full_message(attribute, message) }
-      nested_messages = @nested_hash_errors.map do |attribute, errors|
-        unless errors.full_messages.nil?
-          errors.full_messages.map { |message| "#{attribute} " + message }
+      nested_messages = @nested_classes.map do |attribute, klass|
+        run_or_mapped_run(klass) do |k|
+          unless k.errors.full_messages.nil?
+            k.errors.full_messages.map { |message| "#{attribute} " + message }
+          end
         end
       end
       (parent_messages + nested_messages).flatten
     end
 
     def to_hash(full_messages = false)
-      messages = if full_messages
-        msgs = {}
-        self.messages.each do |attribute, array|
-          msgs[attribute] = array.map { |message| full_message(attribute, message) }
-        end
-        msgs
-      else
-        self.messages.dup
-      end
+      msgs = get_messages(self, full_messages)
 
-      @nested_hash_errors.map do |attribute, errors|
-        error_messages = nested_error_messages(attribute, full_messages)
-        unless errors.empty?
-          messages.merge!(attribute.to_sym => error_messages)
+      @nested_classes.map do |attribute, klass|
+        nested_msgs = run_or_mapped_run(klass) { |k| get_messages(k.errors, full_messages) }
+        unless empty_messages?(nested_msgs)
+          msgs.merge!(attribute.to_sym => nested_msgs)
         end
       end
-      messages
+      msgs
     end
 
     def to_s(full_messages = false)
@@ -99,35 +94,48 @@ module SimpleParams
     end
 
     private
-    def nested_error_messages(attribute, full_messages = false)
-      if is_a_nested_hash_error_attribute?(attribute)
-        errors = @nested_hash_errors[attribute.to_sym]
-        if full_messages          
-          errors.messages.each_with_object({}) do |(attr, array), messages|
-            messages[attr] = array.map { |message| errors.full_message(attr, message) }
-          end
-        else
-          errors.messages.dup
-        end
-      else
-        {}
-      end
+    def nested_class(key)
+      @nested_classes[key.to_sym]
+    end
+
+    def nested_attribute?(attribute)
+      @nested_classes.keys.include?(attribute.to_sym)
+    end
+
+    def set_nested(attribute)
+      klass = nested_class(attribute)
+      errors = run_or_mapped_run(klass) { |k| k.errors }
+      set(attribute.to_sym, errors)
     end
 
     def add_error_to_attribute(attribute, error)
-      if is_a_nested_hash_error_attribute?(attribute)
-        @nested_hash_errors[attribute.to_sym][:base] = error
+      if nested_attribute?(attribute)
+        @nested_classes[attribute].errors.add(:base, error)
       else
         self[attribute] << error
       end
     end
 
-    def is_a_nested_hash_error_attribute?(attribute)
-      @nested_hash_errors.keys.include?(attribute.to_sym)
+    def get_messages(object, full_messages = false)
+      if full_messages
+        object.messages.each_with_object({}) do |(attribute, array), messages|
+          messages[attribute] = array.map { |message| object.full_message(attribute, message) }
+        end
+      else
+        object.messages.dup
+      end
     end
 
-    def is_a_nested_array_error_attribute?(attribute)
-      @nested_array_errors.keys.include?(attribute.to_sym)
+    def empty_messages?(msgs)
+      msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all?(&:empty?))
+    end
+
+    def run_or_mapped_run(object, &block)
+      if object.is_a?(Array)
+        object.map { |obj| yield obj }
+      else
+        yield object
+      end
     end
 
     def symbolize_nested(nested)

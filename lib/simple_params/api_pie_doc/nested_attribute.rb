@@ -19,9 +19,16 @@ module SimpleParams
     end
 
     private
+    def nested_type
+      if options[:type].present? && options[:type].to_sym == :array
+        'Array'
+      else
+        'Hash'
+      end
+    end
 
     def nested_description
-      start = "param :#{name}, Hash, #{description}, #{requirement_description} do"
+      start = "param :#{name}, #{nested_type}, #{description}, #{requirement_description} do"
       attribute_descriptors = []
       attributes.each { |attribute| attribute_descriptors << attribute.to_s }
       finish = "end"
