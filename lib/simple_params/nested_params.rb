@@ -5,6 +5,14 @@ module SimpleParams
         options[:type]
       end
 
+      def array?
+        type.to_sym == :array
+      end
+
+      def hash?
+        type.to_sym == :hash
+      end
+
       def with_ids?
         !!options[:with_ids]
       end

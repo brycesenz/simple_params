@@ -14,7 +14,8 @@ module SimpleParams
 
       def matches?(subject)
         super(subject)
-        subject.send(:nested_hashes).has_key?(@attribute)
+        subject.send(:nested_classes).has_key?(@attribute) &&
+        subject.send(:nested_classes)[@attribute.to_sym].hash?
       end
 
       def description

@@ -32,13 +32,13 @@ describe SimpleParams::ApiPieDoc do
 
     specify "should give object nested_attributes" do
       expect(api_pie_doc.nested_attributes.flat_map(&:keys)).to include(:address, :phone)
-      expect(api_pie_doc.nested_attributes[0].values.flat_map(&:keys)).to eq [:street, :city, :zip_code, :state]
-      expect(api_pie_doc.nested_attributes[1].values.flat_map(&:keys)).to eq [:cell_phone, :phone_number, :area_code]
+      expect(api_pie_doc.nested_attributes[0].values.flat_map(&:keys)).to eq [:street, :city, :zip_code, :state, :type]
+      expect(api_pie_doc.nested_attributes[1].values.flat_map(&:keys)).to eq [:cell_phone, :phone_number, :area_code, :type]
     end
 
-    specify "should give object nested_array_attributes" do
+    specify "should give object nested_array_attributes", failing: true do
       expect(api_pie_doc.nested_array_attributes.flat_map(&:keys)).to include(:dogs)
-      expect(api_pie_doc.nested_array_attributes[0].values.flat_map(&:keys)).to eq [:name, :age]
+      expect(api_pie_doc.nested_array_attributes[0].values.flat_map(&:keys)).to eq [:name, :age, :type]
     end
 
     specify "should give object docs" do

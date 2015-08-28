@@ -14,7 +14,8 @@ module SimpleParams
 
       def matches?(subject)
         super(subject)
-        subject.send(:nested_arrays).has_key?(@attribute)
+        subject.send(:nested_classes).has_key?(@attribute) &&
+        subject.send(:nested_classes)[@attribute.to_sym].array?
       end
 
       def description

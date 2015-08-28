@@ -9,7 +9,7 @@ module SimpleParams
       end
 
       def attributes
-        (defined_attributes.keys + nested_hashes.keys + nested_arrays.keys).flatten
+        (defined_attributes.keys + nested_classes.keys).flatten
       end
     end
 
