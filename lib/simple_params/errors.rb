@@ -130,11 +130,11 @@ module SimpleParams
       msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all?(&:empty?))
     end
 
-    def run_or_mapped_run(object, *args, &block)
+    def run_or_mapped_run(object, &block)
       if object.is_a?(Array)
-        object.map { |obj, args| yield obj, args }
+        object.map { |obj| yield obj }
       else
-        yield object, args
+        yield object
       end
     end
 
