@@ -7,6 +7,9 @@ module SimpleParams
     include ActiveModel::Validations
     extend ActiveModel::Naming
     include SimpleParams::Validations
+    include SimpleParams::HasAttributes
+    extend SimpleParams::DateTimeHelpers
+    extend SimpleParams::HasNestedClasses
 
     TYPES = [
       :integer,
@@ -52,149 +55,11 @@ module SimpleParams
         define_attribute(name, opts)
         add_validations(name, opts)
       end
-
-      def nested_hash(name, opts={}, &block)
-        attr_accessor name
-        nested_class = define_nested_class(name, opts, &block)
-        @nested_hashes ||= {}
-        @nested_hashes[name.to_sym] = nested_class
-      end
-      alias_method :nested_param, :nested_hash
-      alias_method :nested, :nested_hash
-
-      def nested_hashes
-        @nested_hashes ||= {}
-      end
-
-      def nested_array(name, opts={}, &block)
-        attr_accessor name
-        nested_array_class = define_nested_class(name, opts, &block)
-        @nested_arrays ||= {}
-        @nested_arrays[name.to_sym] = nested_array_class
-      end
-
-      def nested_arrays
-        @nested_arrays ||= {}
-      end
-
-      def defined_attributes
-        @define_attributes ||= {}
-      end
-
-      private
-      def define_attribute(name, opts = {})
-        opts[:type] ||= :string
-        defined_attributes[name.to_sym] = opts
-        attr_accessor "#{name}_attribute"
-
-        define_method("#{name}") do
-          attribute = send("#{name}_attribute")
-          attribute.send("value")
-        end
-
-        define_method("raw_#{name}") do
-          attribute = send("#{name}_attribute")
-          attribute.send("raw_value")
-        end
-
-        define_method("#{name}=") do |val|
-          attribute = send("#{name}_attribute")
-          attribute.send("value=", val)
-        end
-
-        if [Date, 'Date', :date].include?(opts[:type])
-          define_date_helper_methods(name)
-        elsif [DateTime, 'DateTime', :datetime, Time, 'Time', :time].include?(opts[:type])
-          define_datetime_helper_methods(name)
-        end
-      end
-
-      def add_validations(name, opts = {})
-        validations = opts[:validations] || {}
-        has_default = opts.has_key?(:default) # checking has_key? because :default may be nil
-        optional = opts[:optional]
-        if !validations.empty?
-          if optional || has_default
-            validations.merge!(allow_nil: true)
-          else
-            validations.merge!(presence: true)
-          end
-        else
-          if !optional && !has_default
-            validations.merge!(presence: true)
-          end
-        end
-        validates name, validations unless validations.empty?
-      end
-
-      def define_nested_class(name, options, &block)
-        klass_name = name.to_s.split('_').collect(&:capitalize).join
-        Class.new(Params).tap do |klass|
-          self.const_set(klass_name, klass)
-          extend ActiveModel::Naming
-          klass.class_eval(&block)
-          klass.class_eval("self.options = #{options}")
-        end
-      end
-
-      def define_date_helper_methods(name)
-        define_method("#{name}(3i)=") do |day|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Date.today
-          attribute.send("value=", Date.new(value.year, value.month, day.to_i))
-        end
-
-        define_method("#{name}(2i)=") do |month|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Date.today
-          attribute.send("value=", Date.new(value.year, month.to_i, value.day))
-        end
-
-        define_method("#{name}(1i)=") do |year|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Date.today
-          attribute.send("value=", Date.new(year.to_i, value.month, value.day))
-        end
-      end
-
-      def define_datetime_helper_methods(name)
-        define_method("#{name}(6i)=") do |sec|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, value.day, value.hour, value.min, sec.to_i, value.utc_offset))
-        end
-
-        define_method("#{name}(5i)=") do |minute|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, value.day, value.hour, minute.to_i, value.sec, value.utc_offset))
-        end
-
-        define_method("#{name}(4i)=") do |hour|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, value.day, hour.to_i, value.min, value.sec, value.utc_offset))
-        end
-
-        define_method("#{name}(3i)=") do |day|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, day.to_i, value.hour, value.min, value.sec, value.utc_offset))
-        end
-
-        define_method("#{name}(2i)=") do |month|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, month.to_i, value.day, value.hour, value.min, value.sec, value.utc_offset))
-        end
-
-        define_method("#{name}(1i)=") do |year|
-          attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(year.to_i, value.month, value.day, value.hour, value.min, value.sec, value.utc_offset))
-        end
-      end
     end
+
+    attr_accessor :original_params
+    alias_method :original_hash, :original_params
+    alias_method :raw_params, :original_params
 
     def initialize(params={}, parent = nil)
       # Set default strict params
@@ -219,21 +84,18 @@ module SimpleParams
       initialize_nested_array_classes
     end
 
-    def define_attributes(params)
-      self.class.defined_attributes.each_pair do |key, opts|
-        send("#{key}_attribute=", Attribute.new(self, key, opts))
-      end
-    end
+    # Moved here to I could override it...
+    # def define_attributes(params)
+    #   # puts "WOOT"
+    #   self.class.defined_attributes.each_pair do |key, opts|
+    #     send("#{key}_attribute=", Attribute.new(self, key, opts))
+    #   end
+    # end
 
-    def attributes
-      (defined_attributes.keys + nested_hashes.keys + nested_arrays.keys).flatten
-    end
+    # def attributes
+    #   (defined_attributes.keys + nested_hashes.keys + nested_arrays.keys).flatten
+    # end
 
-    def original_params
-      @original_params ||= {}
-    end
-    alias_method :original_hash, :original_params
-    alias_method :raw_params, :original_params
 
     def to_hash
       hash = {}
@@ -300,7 +162,6 @@ module SimpleParams
 
     def set_accessors(params={})
       params.each do |attribute_name, value|
-        # Don't set accessors for nested classes
         unless value.is_a?(Hash) 
           send("#{attribute_name}=", value)
         end
