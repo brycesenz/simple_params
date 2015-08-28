@@ -20,7 +20,7 @@ module SimpleParams
 
     private
     def nested_type
-      if options[:type].to_sym == :array
+      if options[:type].present? && options[:type].to_sym == :array
         'Array'
       else
         'Hash'
