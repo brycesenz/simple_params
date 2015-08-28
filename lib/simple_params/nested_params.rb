@@ -44,8 +44,6 @@ module SimpleParams
       super(params)
     end
 
-    # TODO: we need to test this!!
-
     def id
       @id
     end
@@ -59,13 +57,17 @@ module SimpleParams
       super(params)
     end
 
-    # def attributes
-    #   super - [:type]
-    # end
-
     private
     def class_has_ids?
       self.class.with_ids?
+    end
+
+    def hash_class?
+      self.class.hash?
+    end
+
+    def array_class?
+      self.class.array?
     end
   end
 end

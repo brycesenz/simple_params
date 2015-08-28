@@ -97,7 +97,7 @@ describe SimpleParams::NestedParams do
     context "with hash class" do
       context "without ids" do
         let(:defined_class) do
-          described_class.define_new_hash_class(DummyParentClass, :hash_no_ids, {}) do
+          described_class.define_new_hash_class(DummyParentClass, :demo, {}) do
             param :name, default: "Tom"
             param :age, type: :integer
           end
@@ -120,7 +120,7 @@ describe SimpleParams::NestedParams do
 
       context "with ids" do
         let(:defined_class) do
-          described_class.define_new_hash_class(DummyParentClass, :hash_with_ids, { with_ids: true }) do
+          described_class.define_new_hash_class(DummyParentClass, :demo, { with_ids: true }) do
             param :name, default: "Tom"
             param :age, type: :integer
           end
@@ -145,7 +145,7 @@ describe SimpleParams::NestedParams do
     context "with array class" do
       context "without ids" do
         let(:defined_class) do
-          described_class.define_new_array_class(DummyParentClass, :array_no_ids, {}) do
+          described_class.define_new_array_class(DummyParentClass, :demo, {}) do
             param :name, default: "Tom"
             param :age, type: :integer
           end
@@ -168,7 +168,7 @@ describe SimpleParams::NestedParams do
 
       context "with ids" do
         let(:defined_class) do
-          described_class.define_new_array_class(DummyParentClass, :array_with_ids, { with_ids: true }) do
+          described_class.define_new_array_class(DummyParentClass, :demo, { with_ids: true }) do
             param :name, default: "Tom"
             param :age, type: :integer
           end

@@ -11,6 +11,7 @@ module SimpleParams
     include SimpleParams::HasTypedParams
     include SimpleParams::HashHelpers
     include SimpleParams::DateTimeHelpers
+    include SimpleParams::RailsHelpers
     include SimpleParams::StrictParams
 
     class << self
@@ -42,7 +43,6 @@ module SimpleParams
       end
 
       def nested_hash(name, opts={}, &block)
-        attr_accessor name
         klass = NestedParams.define_new_hash_class(self, name, opts, &block)
         add_nested_class(name, klass)
       end
@@ -50,7 +50,6 @@ module SimpleParams
       alias_method :nested, :nested_hash
 
       def nested_array(name, opts={}, &block)
-        attr_accessor name
         klass = NestedParams.define_new_array_class(self, name, opts, &block)
         add_nested_class(name, klass)
       end
@@ -59,6 +58,34 @@ module SimpleParams
       def add_nested_class(name, klass)
         @nested_classes ||= {}
         @nested_classes[name.to_sym] = klass
+        define_nested_accessor(name, klass)
+        define_rails_helpers(name, klass)
+      end
+
+      def define_nested_accessor(name, klass)
+        define_method("#{name}") do
+          if instance_variable_defined?("@#{name}")
+            instance_variable_get("@#{name}")
+          else
+            init_value = klass.hash? ? klass.new({}, self) : []
+            instance_variable_set("@#{name}", init_value)
+          end
+        end
+
+        define_method("#{name}=") do |initializer|
+          init_value = if initializer.is_a?(Array)
+            if klass.with_ids?
+              initializer.first.each_pair.inject([]) do |array, (key, val)|
+                array << klass.new({key => val}, self)
+              end
+            else
+              initializer.map { |val| klass.new(val, self) }
+            end
+          else
+            klass.new(initializer, self)
+          end
+          instance_variable_set("@#{name}", init_value)
+        end
       end
     end
 
@@ -76,7 +103,6 @@ module SimpleParams
       @nested_classes = nested_classes.keys
 
       set_accessors(params)
-      initialize_nested_classes
     end
 
     def to_hash
@@ -111,9 +137,7 @@ module SimpleParams
     private
     def set_accessors(params={})
       params.each do |attribute_name, value|
-        unless value.is_a?(Hash) 
-          send("#{attribute_name}=", value)
-        end
+        send("#{attribute_name}=", value)
       end
     end
 
@@ -123,22 +147,6 @@ module SimpleParams
 
     def nested_classes
       self.class.nested_classes
-    end
-
-    def initialize_nested_classes
-      nested_classes.each do |key, klass|
-        if klass.array?
-          initialization_params = @original_params[key.to_sym] || []
-          initialization_array = []
-          initialization_params.each do |initialization_param|
-            initialization_array << klass.new(initialization_param, self)
-          end
-          send("#{key}=", initialization_array)
-        elsif klass.hash?
-          initialization_params = @original_params[key.to_sym] || {}
-          send("#{key}=", klass.new(initialization_params, self))
-        end
-      end
     end
   end
 end

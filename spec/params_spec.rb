@@ -66,6 +66,13 @@ describe SimpleParams::Params do
         params.address.zip_code = "20165"
         params.address.zip_code.should eq("20165")
       end
+
+      it "can set nested_array with hash" do
+        params.address= { street: "2 Oak Ave.", city: "Miami", zip_code: "90210" }
+        params.address.street.should eq("2 Oak Ave.")
+        params.address.city.should eq("Miami")
+        params.address.zip_code.should eq("90210")
+      end
     end
 
     describe "nested arrays", nested: true do
@@ -79,6 +86,14 @@ describe SimpleParams::Params do
         params.dogs.should respond_to(:first)
         params.dogs.first.should_not be_nil
         params.dogs.first.name.should eq("SPOT")
+      end
+
+      it "can set nested arrays with arrays" do
+        params.dogs = [{ name: "Spot", age: 20 }]
+        params.dogs.count.should eq(1)
+        params.dogs.first.should_not be_nil
+        params.dogs.first.name.should eq("SPOT")
+        params.dogs.first.age.should eq(20)
       end
     end
   end
