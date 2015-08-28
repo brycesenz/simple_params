@@ -122,6 +122,35 @@ describe SimpleParams::NestedParams do
     end
 
     context "with array class" do
+      context "without ids" do
+        let(:defined_class) do
+          described_class.define_new_array_class(DummyParentClass, :demo, {}) do
+            param :name, default: "Tom"
+            param :age, type: :integer
+          end
+        end
+
+        subject { defined_class.new(name: "Bill", age: 21) }
+        
+        its(:name) { should eq("Bill") }
+        its(:age) { should eq(21) }
+        its(:id) { should eq(nil) }
+      end
+
+      context "with ids" do
+        let(:defined_class) do
+          described_class.define_new_array_class(DummyParentClass, :demo, { with_ids: true }) do
+            param :name, default: "Tom"
+            param :age, type: :integer
+          end
+        end
+
+        subject { defined_class.new("132" => { name: "Bill", age: 21 }) }
+        
+        its(:name) { should eq("Bill") }
+        its(:age) { should eq(21) }
+        its(:id) { should eq("132") }
+      end
     end
   end
 end

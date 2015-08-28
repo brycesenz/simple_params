@@ -84,19 +84,6 @@ module SimpleParams
       initialize_nested_array_classes
     end
 
-    # Moved here to I could override it...
-    # def define_attributes(params)
-    #   # puts "WOOT"
-    #   self.class.defined_attributes.each_pair do |key, opts|
-    #     send("#{key}_attribute=", Attribute.new(self, key, opts))
-    #   end
-    # end
-
-    # def attributes
-    #   (defined_attributes.keys + nested_hashes.keys + nested_arrays.keys).flatten
-    # end
-
-
     def to_hash
       hash = {}
       attributes.each do |attribute|
@@ -118,17 +105,15 @@ module SimpleParams
     end
 
     def errors
-      nested_errors_hash = {}
+      nested_class_hash = {}
       @nested_params.each do |param|
-        nested_errors_hash[param.to_sym] = send(param).errors
+        nested_class_hash[param.to_sym] = send(param)
       end
-
-      nested_arrays_hash = {}
       @nested_arrays.each do |array|
-        nested_arrays_hash[array.to_sym] = send(array).map(&:errors)
+        nested_class_hash[array.to_sym] = send(array)
       end
 
-      @errors ||= SimpleParams::Errors.new(self, nested_errors_hash, nested_arrays_hash)
+      @errors ||= SimpleParams::Errors.new(self, nested_class_hash)
     end
 
     # Overriding this method to allow for non-strict enforcement!
