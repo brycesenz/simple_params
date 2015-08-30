@@ -51,7 +51,7 @@ module SimpleParams
     def set_accessors(params={})
       if class_has_ids?
         @id = params.keys.first
-        params = params.values.first
+        params = params.values.first || {}
       end
 
       super(params)
