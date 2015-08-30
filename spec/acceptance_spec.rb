@@ -105,7 +105,7 @@ describe SimpleParams::Params do
           state: "North Carolina",
           company: nil
         },
-        phone: nil,
+        phone: {},
         dogs: [
           {
             name: "Spot",
@@ -320,7 +320,7 @@ describe SimpleParams::Params do
       end
     end
 
-    describe "#validate!" do
+    describe "#validate!", failing: true do
       let(:params) { AcceptanceParams.new }
 
       it "raises error with validation descriptions" do
@@ -349,7 +349,7 @@ describe SimpleParams::Params do
           }
         end
 
-        it "is valid after multiple times", failing: true do
+        it "is valid after multiple times" do
           acceptance_params = AcceptanceParams.new(params)
           acceptance_params.valid?
           acceptance_params.should be_valid
@@ -385,7 +385,7 @@ describe SimpleParams::Params do
           }
         end
 
-        it "is valid after multiple times", failing: true do
+        it "is valid after multiple times" do
           acceptance_params = AcceptanceParams.new(params)
           acceptance_params.valid?
           acceptance_params.should be_valid

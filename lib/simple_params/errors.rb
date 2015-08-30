@@ -36,9 +36,7 @@ module SimpleParams
       super
       @nested_classes.map do |attribute, klass| 
         run_or_mapped_run(klass) do |k| 
-          if k.present?
-            k.errors.clear
-          end
+          k.errors.clear
         end
       end
     end
@@ -47,7 +45,7 @@ module SimpleParams
       super &&
       @nested_classes.all? do |attribute, klass|
         run_or_mapped_run(klass) do |k| 
-          k.nil? || k.errors.empty?
+          k.errors.empty?
         end
       end
     end
