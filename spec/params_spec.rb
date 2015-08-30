@@ -77,23 +77,21 @@ describe SimpleParams::Params do
 
     describe "nested arrays", nested: true do
       it "can access nested arrays as arrays" do
-        params.dogs.should respond_to(:first)
-        params.dogs.first.should be_nil
+        params.dogs[0].should_not be_nil
+        params.dogs[0].name.should be_nil
+        params.dogs[0].age.should be_nil
       end
 
       it "can access nested arrays as arrays with data" do
         params = DummyParams.new(dogs: [{ name: "Spot", age: 20 }])
-        params.dogs.should respond_to(:first)
-        params.dogs.first.should_not be_nil
-        params.dogs.first.name.should eq("SPOT")
+        params.dogs[0].name.should eq("SPOT")
       end
 
       it "can set nested arrays with arrays" do
         params.dogs = [{ name: "Spot", age: 20 }]
         params.dogs.count.should eq(1)
-        params.dogs.first.should_not be_nil
-        params.dogs.first.name.should eq("SPOT")
-        params.dogs.first.age.should eq(20)
+        params.dogs[0].name.should eq("SPOT")
+        params.dogs[0].age.should eq(20)
       end
     end
   end

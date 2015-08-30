@@ -35,14 +35,20 @@ module SimpleParams
     def clear
       super
       @nested_classes.map do |attribute, klass| 
-        run_or_mapped_run(klass) { |k| k.errors.clear }
+        run_or_mapped_run(klass) do |k| 
+          if k.present?
+            k.errors.clear
+          end
+        end
       end
     end
 
     def empty?
       super &&
       @nested_classes.all? do |attribute, klass|
-        run_or_mapped_run(klass) { |k| k.errors.empty? }
+        run_or_mapped_run(klass) do |k| 
+          k.nil? || k.errors.empty?
+        end
       end
     end
     alias_method :blank?, :empty? 
@@ -80,7 +86,11 @@ module SimpleParams
       msgs = get_messages(self, full_messages)
 
       @nested_classes.map do |attribute, klass|
-        nested_msgs = run_or_mapped_run(klass) { |k| get_messages(k.errors, full_messages) }
+        nested_msgs = run_or_mapped_run(klass) do |k| 
+          unless k.nil?
+            get_messages(k.errors, full_messages)
+          end
+        end
         unless empty_messages?(nested_msgs)
           msgs.merge!(attribute.to_sym => nested_msgs)
         end
@@ -104,7 +114,7 @@ module SimpleParams
 
     def set_nested(attribute)
       klass = nested_class(attribute)
-      errors = run_or_mapped_run(klass) { |k| k.errors }
+      errors = run_or_mapped_run(klass) { |k| k.errors if k.present? }
       set(attribute.to_sym, errors)
     end
 

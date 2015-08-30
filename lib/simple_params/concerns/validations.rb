@@ -34,7 +34,7 @@ module SimpleParams
         #  necessarily call valid? on every object
         nested_class.map(&:valid?).all?
       else
-        nested_class.valid?
+        nested_class.present? ? nested_class.valid? : true
       end
     end
   end

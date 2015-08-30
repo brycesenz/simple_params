@@ -19,6 +19,10 @@ class AcceptanceParams < SimpleParams::Params
     param :company, optional: true
   end
 
+  nested_hash :phone, optional: true do
+    param :phone_number
+  end
+
   nested_array :dogs do
     param :name
     param :age, type: :integer, validations: { inclusion: { in: 1..20 } }
@@ -89,6 +93,7 @@ describe SimpleParams::Params do
           state: "North Carolina",
           company: nil
         },
+        phone: nil,
         dogs: [
           {
             name: "Spot",
@@ -187,7 +192,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :dogs])
+      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs])
     end
 
     it "returns array of attribute symbols for nested class" do
@@ -308,36 +313,79 @@ describe SimpleParams::Params do
 
       it "raises error with validation descriptions" do
         expect { params.validate! }.to raise_error(SimpleParamsError,
-          "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}}"
+          "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}, :dogs=>[{:name=>[\"can't be blank\"], :age=>[\"is not included in the list\", \"can't be blank\"]}]}"
         )
       end
     end
 
     describe "acceptance cases" do
-      let(:params) do
-        {
-          name: "Tom", 
-          age: 41,
-          address: { 
-            street: "1 Main St.",
-            city: "Chicago",
-            state: "IL",
-            zip_code: 33440
+      context "without phone" do
+        let(:params) do
+          {
+            name: "Tom", 
+            age: 41,
+            address: { 
+              street: "1 Main St.",
+              city: "Chicago",
+              state: "IL",
+              zip_code: 33440
+            },
+            dogs: [
+              name: "Spot",
+              age: 6
+            ]
           }
-        }
+        end
+
+        it "is valid after multiple times", failing: true do
+          acceptance_params = AcceptanceParams.new(params)
+          acceptance_params.valid?
+          acceptance_params.should be_valid
+          acceptance_params.should be_valid
+        end
+
+        it "is invalidated if validity changes after initial assignment" do
+          acceptance_params = AcceptanceParams.new(params)
+          acceptance_params.should be_valid
+          acceptance_params.name = nil
+          acceptance_params.should_not be_valid
+        end
       end
 
-      it "is valid after multiple times" do
-        acceptance_params = AcceptanceParams.new(params)
-        acceptance_params.should be_valid
-        acceptance_params.should be_valid
-      end
+      context "with phone" do
+        let(:params) do
+          {
+            name: "Tom", 
+            age: 41,
+            address: { 
+              street: "1 Main St.",
+              city: "Chicago",
+              state: "IL",
+              zip_code: 33440
+            },
+            phone: {
+              phone_number: "234"
+            },
+            dogs: [
+              name: "Spot",
+              age: 6
+            ]
+          }
+        end
 
-      it "is invalidated if validity changes after initial assignment" do
-        acceptance_params = AcceptanceParams.new(params)
-        acceptance_params.should be_valid
-        acceptance_params.name = nil
-        acceptance_params.should_not be_valid
+        it "is valid after multiple times", failing: true do
+          acceptance_params = AcceptanceParams.new(params)
+          acceptance_params.valid?
+          acceptance_params.should be_valid
+          acceptance_params.should be_valid
+        end
+
+        it "is invalidated if validity changes after initial assignment" do
+          acceptance_params = AcceptanceParams.new(params)
+          acceptance_params.should be_valid
+          acceptance_params.name = nil
+          acceptance_params.should_not be_valid
+        end
       end
     end
   end
@@ -379,6 +427,9 @@ describe SimpleParams::Params do
           param :zip_code, String, desc: '', required: false
           param :state, String, desc: '', required: false
           param :company, String, desc: '', required: false
+        end
+        param :phone, Hash, desc: '', required: false do
+          param :phone_number, String, desc: '', required: true
         end
         param :dogs, Array, desc: '', required: true do
           param :name, String, desc: '', required: true

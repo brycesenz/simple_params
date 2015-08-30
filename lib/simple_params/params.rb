@@ -44,30 +44,33 @@ module SimpleParams
 
       def nested_hash(name, opts={}, &block)
         klass = NestedParams.define_new_hash_class(self, name, opts, &block)
-        add_nested_class(name, klass)
+        add_nested_class(name, klass, opts)
       end
       alias_method :nested_param, :nested_hash
       alias_method :nested, :nested_hash
 
       def nested_array(name, opts={}, &block)
         klass = NestedParams.define_new_array_class(self, name, opts, &block)
-        add_nested_class(name, klass)
+        add_nested_class(name, klass, opts)
       end
 
       private
-      def add_nested_class(name, klass)
+      def add_nested_class(name, klass, opts)
         @nested_classes ||= {}
         @nested_classes[name.to_sym] = klass
-        define_nested_accessor(name, klass)
+        define_nested_accessor(name, klass, opts)
         define_rails_helpers(name, klass)
       end
 
-      def define_nested_accessor(name, klass)
+      def define_nested_accessor(name, klass, opts)
         define_method("#{name}") do
           if instance_variable_defined?("@#{name}")
             instance_variable_get("@#{name}")
           else
-            init_value = klass.hash? ? klass.new({}, self) : []
+            # This logic basically sets the nested class to an instance of itself, unless
+            #  it is optional.
+            init_value = opts[:optional] ? nil : klass.new({}, self)
+            init_value = klass.hash? ? init_value : [init_value]
             instance_variable_set("@#{name}", init_value)
           end
         end
