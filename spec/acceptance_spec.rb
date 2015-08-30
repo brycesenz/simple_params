@@ -44,6 +44,18 @@ describe SimpleParams::Params do
     end
   end
 
+  describe "reflect_on_association", reflect_on_association: true do
+    it "can get hash association classes" do
+      klass = AcceptanceParams.reflect_on_association(:address).klass
+      klass.should eq(AcceptanceParams::Address)
+    end
+
+    it "can get array association classes" do
+      klass = AcceptanceParams.reflect_on_association(:dogs).klass
+      klass.should eq(AcceptanceParams::Dogs)
+    end
+  end
+
   describe "original_params", original_params: true do
     it "returns symbolized params hash" do
       params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
