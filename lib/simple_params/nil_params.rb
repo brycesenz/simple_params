@@ -13,11 +13,7 @@ module SimpleParams
     end
 
     def errors
-      OpenStruct.new(
-        empty?: true,
-        clear: true,
-        messages: {}
-      )
+      Errors.new(self)
     end
   end
 end
