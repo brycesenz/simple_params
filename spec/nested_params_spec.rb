@@ -33,6 +33,10 @@ describe SimpleParams::NestedParams do
         defined_class.name.should eq("DummyParentClass::MySpecialParams")
       end
 
+      it "has correct parent class" do
+        defined_class.parent_class.should eq(DummyParentClass)
+      end
+
       it "has correct options" do
         defined_class.options.should eq(
           {

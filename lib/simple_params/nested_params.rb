@@ -32,6 +32,14 @@ module SimpleParams
         klass_name = name.to_s.split('_').collect(&:capitalize).join
         Class.new(self).tap do |klass|
           parent.const_set(klass_name, klass)
+          klass.instance_eval <<-DEF
+            def parent_class
+              #{parent}
+            end
+          DEF
+          if klass.parent_class.using_rails_helpers?
+            klass.instance_eval("with_rails_helpers")
+          end
           extend ActiveModel::Naming
           klass.class_eval(&block)
           klass.class_eval("self.options = #{options}")

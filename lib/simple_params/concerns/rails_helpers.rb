@@ -34,6 +34,7 @@ module SimpleParams
       end
 
       def using_rails_helpers?
+        @rails_helpers||= false
         !!@rails_helpers
       end
       # http://apidock.com/rails/ActiveRecord/Reflection/AssociationReflection/klass
@@ -54,7 +55,7 @@ module SimpleParams
 
       def define_rails_helpers(name, klass)
         # define a _destroy param (Boolean, default: false)
-        unless method_defined?(:_destroy) && method_defined?(:destroy)
+        unless method_defined?(:_destroy_attribute)
           define_attribute(:_destroy, {type: :boolean, default: false})
         end
 
