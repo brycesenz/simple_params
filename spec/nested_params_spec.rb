@@ -2,11 +2,6 @@ require 'spec_helper'
 require 'fixtures/dummy_params'
 
 describe SimpleParams::NestedParams do
-  # Turn off Constant Redefined errors
-  before(:each) do
-    $VERBOSE = nil
-  end
-
   class DummyParentClass < SimpleParams::Params
   end
 

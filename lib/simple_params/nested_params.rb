@@ -31,6 +31,7 @@ module SimpleParams
       def define_new_class(parent, name, options, &block)
         klass_name = name.to_s.split('_').collect(&:capitalize).join
         Class.new(self).tap do |klass|
+          parent.send(:remove_const, klass_name) if parent.const_defined?(klass_name)
           parent.const_set(klass_name, klass)
           klass.instance_eval <<-DEF
             def parent_class
@@ -53,7 +54,7 @@ module SimpleParams
     end
 
     def id
-      @id
+      @id ||= nil
     end
 
     def set_accessors(params={})

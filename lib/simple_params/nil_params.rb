@@ -1,11 +1,27 @@
 module SimpleParams
-  class NilParams < Params
+  class NilParams < NestedParams
     class << self
+      def define_nil_class(parent)
+        define_new_class(parent, :nil_params, {}) do
+        end
+      end
+
+      def nested_classes
+        if respond_to?(:parent_class) && parent_class.present?
+          parent_class.nested_classes
+        else
+          {}
+        end
+      end
     end
 
-    def initialize(params = {}, mocked_object = nil)
-      @mocked_object = mocked_object
-      define_class_nested_classes_method
+    def initialize(params = {})      
+      self.class.options ||= {}
+      @mocked_object = if parent_class
+        parent_class.new
+      else
+        nil
+      end
       super(params)
     end
 
@@ -19,10 +35,6 @@ module SimpleParams
 
     def errors
       Errors.new(self)
-    end
-
-    def class
-      singleton_class
     end
 
     def method_missing(method_name, *arguments, &block)
@@ -42,14 +54,11 @@ module SimpleParams
     end
 
     private
-    def define_class_nested_classes_method
-      unless @mocked_object.nil?
-        mocked_class = @mocked_object.class
-        self.singleton_class.instance_eval <<-EOT
-          def nested_classes
-            #{mocked_class.nested_classes}
-          end
-        EOT
+    def parent_class
+      if self.class.respond_to?(:parent_class)
+        self.class.parent_class
+      else
+        nil
       end
     end
   end
