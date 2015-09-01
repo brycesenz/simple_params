@@ -6,12 +6,12 @@ module SimpleParams
     include Virtus.model
     include ActiveModel::Validations
     extend ActiveModel::Naming
+    include SimpleParams::RailsHelpers
     include SimpleParams::Validations
     include SimpleParams::HasAttributes
     include SimpleParams::HasTypedParams
     include SimpleParams::HashHelpers
     include SimpleParams::DateTimeHelpers
-    include SimpleParams::RailsHelpers
     include SimpleParams::StrictParams
 
     class << self
@@ -59,7 +59,9 @@ module SimpleParams
         @nested_classes ||= {}
         @nested_classes[name.to_sym] = klass
         define_nested_accessor(name, klass, opts)
-        define_rails_helpers(name, klass)
+        if using_rails_helpers?
+          define_rails_helpers(name, klass)
+        end
       end
 
       def define_nested_accessor(name, klass, opts)

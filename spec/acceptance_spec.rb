@@ -193,11 +193,11 @@ describe SimpleParams::Params do
         "current_time(6i)" => "56", 
         "current_time(5i)" => "11", 
         "current_time(4i)" => "9",
-        "current_time(3i)" => "31", 
+        "current_time(3i)" => "29", 
         "current_time(2i)" => "10", 
         "current_time(1i)" => "2015"
       )
-      params.current_time.should eq(DateTime.new(2015, 10, 31, 9, 11, 56))
+      params.current_time.should eq(DateTime.new(2015, 10, 29, 9, 11, 56))
     end
   end
 
