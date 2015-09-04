@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class RailsIntegrationParams < SimpleParams::Params
   with_rails_helpers
-
+  
   param :name
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :current_time, type: :datetime, optional: true
