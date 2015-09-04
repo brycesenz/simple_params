@@ -54,11 +54,6 @@ module SimpleParams
       end
 
       def define_rails_helpers(name, klass)
-        # define a _destroy param (Boolean, default: false)
-        unless method_defined?(:_destroy_attribute)
-          define_attribute(:_destroy, {type: :boolean, default: false})
-        end
-
         # E.g. if we have a nested_class named :phones, then we need:
         #  - a method called :phones_attributes that also sets :phones
         #  - a method called :build_phone
