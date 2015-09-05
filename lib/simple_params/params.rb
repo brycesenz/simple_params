@@ -97,7 +97,16 @@ module SimpleParams
                 array
               end
             else
-              initializer.map { |val| klass.new(val, self) }
+              initializer.map do |val|
+                destroyed = if val.has_key?(:_destroy)
+                  val[:_destroy]
+                elsif val.has_key?("_destroy")
+                  val["_destroy"]
+                end
+                unless [true, "1"].include?(destroyed)
+                  klass.new(val, self)
+                end
+              end.compact
             end
           else
             klass.new(initializer, self)
