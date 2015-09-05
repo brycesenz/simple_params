@@ -28,6 +28,11 @@ class AcceptanceParams < SimpleParams::Params
     param :age, type: :integer, validations: { inclusion: { in: 1..20 } }
   end
 
+  nested_array :cats, with_ids: true do
+    with_rails_helpers
+    param :name
+  end
+
   def name_has_letters
     if name.present? && !(name =~ /^[a-zA-Z]*$/)
       errors.add(:name, "must only contain letters")
@@ -110,6 +115,12 @@ describe SimpleParams::Params do
           {
             name: "Spot",
             age: 8
+          }
+        ],
+        cats: [
+          {
+            name: nil,
+            _destroy: false
           }
         ]
       })
@@ -204,7 +215,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs])
+      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats])
     end
 
     it "returns array of attribute symbols for nested class" do
@@ -320,12 +331,12 @@ describe SimpleParams::Params do
       end
     end
 
-    describe "#validate!", failing: true do
+    describe "#validate!" do
       let(:params) { AcceptanceParams.new }
 
       it "raises error with validation descriptions" do
         expect { params.validate! }.to raise_error(SimpleParamsError,
-          "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}, :dogs=>[{:name=>[\"can't be blank\"], :age=>[\"is not included in the list\", \"can't be blank\"]}]}"
+          "{:name=>[\"can't be blank\"], :address=>{:street=>[\"can't be blank\"], :city=>[\"is too short (minimum is 4 characters)\", \"can't be blank\"]}, :dogs=>[{:name=>[\"can't be blank\"], :age=>[\"is not included in the list\", \"can't be blank\"]}], :cats=>[{:name=>[\"can't be blank\"]}]}"
         )
       end
     end
@@ -345,6 +356,11 @@ describe SimpleParams::Params do
             dogs: [
               name: "Spot",
               age: 6
+            ],
+            cats: [
+              "0" => {
+                name: "Fuzzball"
+              }
             ]
           }
         end
@@ -379,8 +395,15 @@ describe SimpleParams::Params do
               phone_number: "234"
             },
             dogs: [
-              name: "Spot",
-              age: 6
+              {
+                name: "Spot",
+                age: 6
+              }
+            ],
+            cats: [
+              "0" => {
+                name: "Fuzzball"
+              }
             ]
           }
         end
@@ -397,6 +420,51 @@ describe SimpleParams::Params do
           acceptance_params.should be_valid
           acceptance_params.name = nil
           acceptance_params.should_not be_valid
+        end
+      end
+
+      context "with destroyed cat" do
+        let(:params) do
+          {
+            name: "Tom", 
+            age: 41,
+            address: { 
+              street: "1 Main St.",
+              city: "Chicago",
+              state: "IL",
+              zip_code: 33440
+            },
+            phone: {
+              phone_number: "234"
+            },
+            dogs: [
+              {
+                name: "Spot",
+                age: 6
+              }
+            ],
+            cats: [
+              "0" => {
+                name: "Fuzzball"
+              },
+              "1" => {
+                name: "Fuzzball 2",
+                _destroy: "1"
+              }
+            ]
+          }
+        end
+
+        it "is valid after multiple times" do
+          acceptance_params = AcceptanceParams.new(params)
+          acceptance_params.valid?
+          acceptance_params.should be_valid
+          acceptance_params.should be_valid
+        end
+
+        it "only assigns 1 cat", failing: true do
+          acceptance_params = AcceptanceParams.new(params)
+          acceptance_params.cats.count.should eq(1)
         end
       end
     end
@@ -446,6 +514,10 @@ describe SimpleParams::Params do
         param :dogs, Array, desc: '', required: true do
           param :name, String, desc: '', required: true
           param :age, Integer, desc: '', required: true
+        end
+        param :cats, Array, desc:'', required: true do
+          param :name, String, desc:'', required: true
+          param :_destroy, Boolean, desc:'', required: false
         end
       API_PIE_DOCS
 

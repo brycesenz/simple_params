@@ -38,14 +38,17 @@ module SimpleParams
               #{parent}
             end
           DEF
-          if klass.parent_class.using_rails_helpers?
-            klass.instance_eval("with_rails_helpers")
-            # define a _destroy param (Boolean, default: false)
-            klass.send(:define_attribute, :_destroy, {type: :boolean, default: false})
-          end
           extend ActiveModel::Naming
           klass.class_eval(&block)
           klass.class_eval("self.options = #{options}")
+          if klass.parent_class.using_rails_helpers?
+            klass.instance_eval("with_rails_helpers")
+          end
+
+          # define a _destroy param (Boolean, default: false)
+          if klass.using_rails_helpers?
+            klass.send(:define_attribute, :_destroy, {type: :boolean, default: false})
+          end
         end
       end
     end

@@ -86,7 +86,15 @@ module SimpleParams
           init_value = if initializer.is_a?(Array)
             if klass.with_ids?
               initializer.first.each_pair.inject([]) do |array, (key, val)|
-                array << klass.new({key => val}, self)
+                destroyed = if val.has_key?(:_destroy)
+                  val[:_destroy]
+                elsif val.has_key?("_destroy")
+                  val["_destroy"]
+                end
+                unless [true, "1"].include?(destroyed)
+                  array << klass.new({key => val}, self)
+                end
+                array
               end
             else
               initializer.map { |val| klass.new(val, self) }
