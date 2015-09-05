@@ -359,11 +359,11 @@ describe SimpleParams::Params do
               name: "Spot",
               age: 6
             ],
-            cats: [
+            cats: {
               "0" => {
                 name: "Fuzzball"
               }
-            ]
+            }
           }
         end
 
@@ -402,11 +402,11 @@ describe SimpleParams::Params do
                 age: 6
               }
             ],
-            cats: [
+            cats: {
               "0" => {
                 name: "Fuzzball"
               }
-            ]
+            }
           }
         end
 
@@ -450,11 +450,11 @@ describe SimpleParams::Params do
                 _destroy: true
               }
             ],
-            cats: [
+            cats: {
               "0" => {
                 name: "Fuzzball"
               }
-            ]
+            }
           }
         end
 
@@ -491,7 +491,7 @@ describe SimpleParams::Params do
                 age: 6
               }
             ],
-            cats: [
+            cats: {
               "0" => {
                 name: "Fuzzball"
               },
@@ -499,7 +499,7 @@ describe SimpleParams::Params do
                 name: "Fuzzball 2",
                 _destroy: "1"
               }
-            ]
+            }
           }
         end
 

@@ -35,7 +35,7 @@ describe SimpleParams::Params do
         street: "1 Main St.",
         city: "Charlotte"
       },
-      dogs_attributes: [
+      dogs_attributes: {
         "0" => {
           name: "Spot",
           age: 4
@@ -43,7 +43,7 @@ describe SimpleParams::Params do
         "1" => {
           age: 6
         }
-      ]
+      }
     )
   end
 
