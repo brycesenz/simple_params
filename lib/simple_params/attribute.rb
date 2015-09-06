@@ -39,12 +39,46 @@ module SimpleParams
       end
     end
 
+    def assign_parameter_attributes(pairs)
+      @p6i ||= pairs["6i"]
+      @p5i ||= pairs["5i"]
+      @p4i ||= pairs["4i"]
+      @p3i ||= pairs["3i"]
+      @p2i ||= pairs["2i"]
+      @p1i ||= pairs["1i"]
+      if all_multiparams_present?
+        self.value = parse_multiparams
+      end
+    rescue ArgumentError
+      self.value = nil
+    end
+
   private
     def raw_default
       if @default.is_a?(Proc)
         @default.call(parent, self)
       else
         @default
+      end
+    end
+
+    def all_multiparams_present?
+      if @type == Date
+        [@p1i, @p2i, @p3i].all? { |p| !p.nil? }
+      elsif (@type == DateTime) || (@type == Time)
+        [@p1i, @p2i, @p3i, @p4i, @p5i, @p6i].all? { |p| !p.nil? }
+      else
+        true
+      end
+    end
+
+    def parse_multiparams
+      if @type == Date
+        Date.new(@p1i.to_i, @p2i.to_i, @p3i.to_i)
+      elsif @type == DateTime
+        DateTime.new(@p1i.to_i, @p2i.to_i, @p3i.to_i, @p4i.to_i, @p5i.to_i, @p6i.to_i)
+      elsif @type == Time
+        Time.new(@p1i.to_i, @p2i.to_i, @p3i.to_i, @p4i.to_i, @p5i.to_i, @p6i.to_i)
       end
     end
   end

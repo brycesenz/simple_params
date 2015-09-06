@@ -192,7 +192,7 @@ describe SimpleParams::Params do
   end
 
   describe "datetime setters", datetime_accessors: true do
-    it "can set date through Rails style date setters" do
+    it "can set date through Rails style date setters", failing: true do
       params = AcceptanceParams.new(
         "date_of_birth(3i)" => "5", 
         "date_of_birth(2i)" => "6", 

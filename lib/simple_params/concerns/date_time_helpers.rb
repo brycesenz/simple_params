@@ -9,58 +9,49 @@ module SimpleParams
       def define_date_helper_methods(name)
         define_method("#{name}(3i)=") do |day|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Date.today
-          attribute.send("value=", Date.new(value.year, value.month, day.to_i))
+          attribute.assign_parameter_attributes("3i" => day)
         end
 
         define_method("#{name}(2i)=") do |month|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Date.today
-          attribute.send("value=", Date.new(value.year, month.to_i, value.day))
+          attribute.assign_parameter_attributes("2i" => month)
         end
 
         define_method("#{name}(1i)=") do |year|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Date.today
-          attribute.send("value=", Date.new(year.to_i, value.month, value.day))
+          attribute.assign_parameter_attributes("1i" => year)
         end
       end
 
       def define_datetime_helper_methods(name)
         define_method("#{name}(6i)=") do |sec|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, value.day, value.hour, value.min, sec.to_i, value.utc_offset))
+          attribute.assign_parameter_attributes("6i" => sec)
         end
 
         define_method("#{name}(5i)=") do |minute|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, value.day, value.hour, minute.to_i, value.sec, value.utc_offset))
+          attribute.assign_parameter_attributes("5i" => minute)
         end
 
         define_method("#{name}(4i)=") do |hour|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, value.day, hour.to_i, value.min, value.sec, value.utc_offset))
+          attribute.assign_parameter_attributes("4i" => hour)
         end
 
         define_method("#{name}(3i)=") do |day|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, value.month, day.to_i, value.hour, value.min, value.sec, value.utc_offset))
+          attribute.assign_parameter_attributes("3i" => day)
         end
 
         define_method("#{name}(2i)=") do |month|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(value.year, month.to_i, value.day, value.hour, value.min, value.sec, value.utc_offset))
+          attribute.assign_parameter_attributes("2i" => month)
         end
 
         define_method("#{name}(1i)=") do |year|
           attribute = send("#{name}_attribute")
-          value = attribute.send("value") || Time.now.utc
-          attribute.send("value=", Time.new(year.to_i, value.month, value.day, value.hour, value.min, value.sec, value.utc_offset))
+          attribute.assign_parameter_attributes("1i" => year)
         end
       end
     end
