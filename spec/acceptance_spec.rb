@@ -34,6 +34,12 @@ class AcceptanceParams < SimpleParams::Params
     param :name
   end
 
+  before_validation :set_current_time
+
+  def set_current_time
+    self.current_time ||= DateTime.new(2014, 3, 2, 10, 3, 4)
+  end
+
   def name_has_letters
     if name.present? && !(name =~ /^[a-zA-Z]*$/)
       errors.add(:name, "must only contain letters")
@@ -192,7 +198,7 @@ describe SimpleParams::Params do
   end
 
   describe "datetime setters", datetime_accessors: true do
-    it "can set date through Rails style date setters", failing: true do
+    it "can set date through Rails style date setters" do
       params = AcceptanceParams.new(
         "date_of_birth(3i)" => "5", 
         "date_of_birth(2i)" => "6", 
@@ -306,6 +312,12 @@ describe SimpleParams::Params do
       params = AcceptanceParams.new(color: "blue")
       params.should_not be_valid
       params.errors[:color].should eq(["is not included in the list"])
+    end
+
+    it "calls before_validation" do
+      params = AcceptanceParams.new(color: "blue")
+      params.should_not be_valid
+      params.current_time.should eq(DateTime.new(2014, 3, 2, 10, 3, 4))
     end
 
     describe "nested hashes", nested_hash: true do

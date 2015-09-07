@@ -5,6 +5,7 @@ module SimpleParams
   class Params
     include Virtus.model
     include ActiveModel::Validations
+    include ActiveModel::Validations::Callbacks
     extend ActiveModel::Naming
     include SimpleParams::RailsHelpers
     include SimpleParams::Validations
