@@ -90,7 +90,7 @@ module SimpleParams
               elsif val.has_key?("_destroy")
                 val["_destroy"]
               end
-              unless [true, "1"].include?(destroyed)
+              unless [true, 1, "1", "true"].include?(destroyed)
                 klass.new(val, self)
               end
             end.compact
@@ -101,7 +101,7 @@ module SimpleParams
               elsif val.has_key?("_destroy")
                 val["_destroy"]
               end
-              unless [true, "1"].include?(destroyed)
+              unless [true, 1, "1", "true"].include?(destroyed)
                 array << klass.new({key => val}, self)
               end
               array
