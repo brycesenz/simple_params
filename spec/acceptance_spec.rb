@@ -34,6 +34,11 @@ class AcceptanceParams < SimpleParams::Params
     param :name
   end
 
+  nested_array :birds, optional: true, with_ids: true do
+    with_rails_helpers
+    param :name
+  end
+
   before_validation :set_current_time
 
   def set_current_time
@@ -130,6 +135,9 @@ describe SimpleParams::Params do
             name: nil,
             _destroy: false
           }
+        ],
+        birds: [
+          {}
         ]
       })
     end
@@ -216,14 +224,14 @@ describe SimpleParams::Params do
         "current_time(2i)" => "10", 
         "current_time(1i)" => "2015"
       )
-      params.current_time.should eq(DateTime.new(2015, 10, 29, 9, 11, 56))
+      params.current_time.should eq(DateTime.new(2015, 10, 29, 9, 11, 56, '-04:00'))
     end
   end
 
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats])
+      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
     end
 
     it "returns array of attribute symbols for nested class" do
@@ -343,6 +351,32 @@ describe SimpleParams::Params do
         params.should_not be_valid
         params.errors[:dogs][1][:age].should eq(["is not included in the list", "can't be blank"])
       end
+
+      # it "initializes birds as empty", failing: true do
+      #   params = AcceptanceParams.new
+      #   params.birds.should be_empty
+      # end
+
+      # it "allows absense of optional params", failing: true do
+      #   params = AcceptanceParams.new(
+      #     name: "test",
+      #     address: {
+      #       street: "1 Main St.",
+      #       city: "Asheville",
+      #       zip_code: "28806"
+      #     },
+      #     dogs: [
+      #       { name: "spot", age: 13 }
+      #     ],
+      #     cats: {
+      #       "0" => {
+      #         name: "Purr"
+      #       }
+      #     },
+      #   )
+      #   params.birds.should be_empty
+      #   params.should be_valid
+      # end
     end
 
     describe "#validate!" do
@@ -577,6 +611,10 @@ describe SimpleParams::Params do
           param :_destroy, Boolean, desc:'', required: false
         end
         param :cats, Array, desc:'', required: true do
+          param :name, String, desc:'', required: true
+          param :_destroy, Boolean, desc:'', required: false
+        end
+        param :birds, Array, desc:'', required: false do
           param :name, String, desc:'', required: true
           param :_destroy, Boolean, desc:'', required: false
         end

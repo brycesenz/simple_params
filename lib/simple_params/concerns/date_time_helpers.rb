@@ -2,9 +2,6 @@ module SimpleParams
   module DateTimeHelpers
     extend ActiveSupport::Concern
 
-    included do
-    end
-
     module ClassMethods
       def define_date_helper_methods(name)
         define_method("#{name}(3i)=") do |day|

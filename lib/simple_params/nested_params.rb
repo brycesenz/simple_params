@@ -17,6 +17,10 @@ module SimpleParams
         !!options[:with_ids]
       end
 
+      def optional?
+        !!options[:optional]
+      end
+
       def define_new_hash_class(parent, name, options, &block)
         options = options.merge(type: :hash)
         define_new_class(parent, name, options, &block)

@@ -11,7 +11,6 @@ module SimpleParams
     include SimpleParams::Validations
     include SimpleParams::HasAttributes
     include SimpleParams::HasTypedParams
-    include SimpleParams::HashHelpers
     include SimpleParams::DateTimeHelpers
     include SimpleParams::StrictParams
 
@@ -122,12 +121,16 @@ module SimpleParams
     def initialize(params={})
       set_strictness
 
-      @original_params = hash_to_symbolized_hash(params)
+      params = InitializationHash.new(params)
+
+      # @original_params = hash_to_symbolized_hash(params)
+      @original_params = params.original_params
       define_attributes(@original_params)
 
       # Nested Classes
       @nested_classes = nested_classes.keys
 
+      define_nested_class_defaults
       set_accessors(params)
     end
 
@@ -173,6 +176,18 @@ module SimpleParams
 
     def nested_classes
       self.class.nested_classes
+    end
+
+    def define_nested_class_defaults
+      nested_classes.each do |key, klass|
+        if klass.array? && klass.optional?
+          if klass.with_ids?
+          #   send("#{key.to_s}=", [{}])
+          # else
+          #   send("#{key.to_s}=", [])
+          end
+        end
+      end
     end
   end
 end

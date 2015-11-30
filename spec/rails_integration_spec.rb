@@ -49,7 +49,7 @@ describe SimpleParams::Params do
     end
 
     specify "setting datetime" do
-      expect(params.current_time).to eq DateTime.new(2009, 3, 4, 11, 58, 59)
+      expect(params.current_time).to eq DateTime.new(2009, 3, 4, 11, 58, 59, '-05:00')
     end
 
     specify "sets address" do
