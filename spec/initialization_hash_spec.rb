@@ -68,18 +68,4 @@ describe SimpleParams::InitializationHash do
   it "has nil invalid_time" do
     initialization_hash[:invalid_time].should eq(nil)
   end 
-
-  # describe "datetime setters", datetime_accessors: true do
-  #   it "can set date through Rails style date setters" do
-  #     params = AcceptanceParams.new(
-  #     )
-  #     params.date_of_birth.should eq(Date.new(1984, 6, 5))
-  #   end
-
-  #   it "can set datetime through Rails style date setters" do
-  #     params = AcceptanceParams.new(
-  #     )
-  #     params.current_time.should eq(DateTime.new(2015, 10, 29, 9, 11, 56))
-  #   end
-  # end
 end

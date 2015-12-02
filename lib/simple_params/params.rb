@@ -11,7 +11,6 @@ module SimpleParams
     include SimpleParams::Validations
     include SimpleParams::HasAttributes
     include SimpleParams::HasTypedParams
-    include SimpleParams::DateTimeHelpers
     include SimpleParams::StrictParams
 
     class << self
@@ -28,6 +27,11 @@ module SimpleParams
       def param(name, opts={})
         define_attribute(name, opts)
         add_validations(name, opts)
+      end
+
+      def add_validations(name, opts = {})
+        validation_string = ValidationBuilder.new(name, opts).validation_string
+        eval(validation_string)
       end
 
       def nested_classes
@@ -73,6 +77,7 @@ module SimpleParams
             #  it is optional.
             klass_instance = klass.new({}, self)
             init_value = if opts[:optional]
+              # nil
               NilParams.define_nil_class(klass).new
             else 
               klass_instance
@@ -83,32 +88,7 @@ module SimpleParams
         end
 
         define_method("#{name}=") do |initializer|
-          init_value = if initializer.is_a?(Array)
-            initializer.map do |val|
-              destroyed = if val.has_key?(:_destroy)
-                val[:_destroy]
-              elsif val.has_key?("_destroy")
-                val["_destroy"]
-              end
-              unless [true, 1, "1", "true"].include?(destroyed)
-                klass.new(val, self)
-              end
-            end.compact
-          elsif klass.with_ids?
-            initializer.each_pair.inject([]) do |array, (key, val)|
-              destroyed = if val.has_key?(:_destroy)
-                val[:_destroy]
-              elsif val.has_key?("_destroy")
-                val["_destroy"]
-              end
-              unless [true, 1, "1", "true"].include?(destroyed)
-                array << klass.new({key => val}, self)
-              end
-              array
-            end
-          else
-            klass.new(initializer, self)
-          end
+          init_value = klass.build(initializer, self)
           instance_variable_set("@#{name}", init_value)
         end
       end
@@ -120,38 +100,23 @@ module SimpleParams
 
     def initialize(params={})
       set_strictness
-
       params = InitializationHash.new(params)
-
-      # @original_params = hash_to_symbolized_hash(params)
       @original_params = params.original_params
       define_attributes(@original_params)
 
       # Nested Classes
       @nested_classes = nested_classes.keys
-
-      define_nested_class_defaults
       set_accessors(params)
     end
 
-    def to_hash
-      hash = {}
-      attributes.each do |attribute|
-        raw_attribute = send(attribute)
-        if raw_attribute.is_a?(SimpleParams::Params)
-          hash[attribute] = send(attribute).to_hash
-        elsif raw_attribute.is_a?(Array)
-          attribute_array = []
-          raw_attribute.each do |r_attr|
-            attribute_array << r_attr.to_hash
-          end
-          hash[attribute] = attribute_array
-        else
-          hash[attribute] = send(attribute)
-        end
+    def define_attributes(params)
+      self.class.defined_attributes.each_pair do |key, opts|
+        send("#{key}_attribute=", Attribute.new(self, key, opts))
       end
+    end
 
-      hash
+    def to_hash
+      HashBuilder.new(self).build
     end
 
     def errors
@@ -159,7 +124,6 @@ module SimpleParams
       @nested_classes.each do |param|
         nested_class_hash[param.to_sym] = send(param)
       end
-
       @errors ||= SimpleParams::Errors.new(self, nested_class_hash)
     end
 
@@ -176,18 +140,6 @@ module SimpleParams
 
     def nested_classes
       self.class.nested_classes
-    end
-
-    def define_nested_class_defaults
-      nested_classes.each do |key, klass|
-        if klass.array? && klass.optional?
-          if klass.with_ids?
-          #   send("#{key.to_s}=", [{}])
-          # else
-          #   send("#{key.to_s}=", [])
-          end
-        end
-      end
     end
   end
 end

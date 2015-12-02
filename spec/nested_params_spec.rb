@@ -125,7 +125,7 @@ describe SimpleParams::NestedParams do
           end
         end
 
-        subject { defined_class.new("132" => { name: "Bill", age: 21 }) }
+        subject { defined_class.new({ "132" => { name: "Bill", age: 21 } }, nil) }
         
         specify "name" do
           expect(subject.name).to eq "Bill"
@@ -173,7 +173,7 @@ describe SimpleParams::NestedParams do
           end
         end
 
-        subject { defined_class.new("132" => { name: "Bill", age: 21 }) }
+        subject { defined_class.new({ "132" => { name: "Bill", age: 21 } }, nil) }
         
         specify "name" do
           expect(subject.name).to eq "Bill"
