@@ -63,7 +63,7 @@ module SimpleParams
 
         singular_key = singularized_key(name)
         define_method("build_#{singular_key}") do |value={}|
-          klass.new(value, self)
+          klass.new(value, self, name)
         end
       end
 
