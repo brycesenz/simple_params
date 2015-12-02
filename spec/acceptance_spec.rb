@@ -233,8 +233,9 @@ describe SimpleParams::Params do
       params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
     end
 
-    it "returns array of attribute symbols for nested class" do
-      params = AcceptanceParams::Address.new
+    it "returns array of attribute symbols for nested class", failing: true do
+      params = AcceptanceParams::Address.new({}, nil, "address")
+      params.parent_attribute_name.should eq(:address)
       params.attributes.should eq([:street, :city, :zip_code, :state, :company])
     end
 
@@ -412,7 +413,7 @@ describe SimpleParams::Params do
           }
         end
 
-        it "is valid after multiple times", failing: true do
+        it "is valid after multiple times" do
           acceptance_params = AcceptanceParams.new(params)
           acceptance_params.valid?
           acceptance_params.should be_valid

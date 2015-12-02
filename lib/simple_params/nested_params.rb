@@ -29,13 +29,13 @@ module SimpleParams
         define_new_class(parent, name, options.merge(type: :array), &block)
       end
 
-      def build(params, parent = nil)
+      def build(params, parent, name)
         if params.is_a?(Array)
-          params.map { |p| build_instance(p, parent) }.compact
+          params.map { |p| build_instance(p, parent, name) }.compact
         elsif with_ids?
-          params.each_pair.map { |key, val| build_instance({key => val}, parent) }.compact
+          params.each_pair.map { |key, val| build_instance({key => val}, parent, name) }.compact
         else
-          build_instance(params, parent)
+          build_instance(params, parent, name)
         end
       end
 
@@ -44,16 +44,17 @@ module SimpleParams
         NestedParamsClassBuilder.new(parent).build(self, name, options, &block)
       end
 
-      def build_instance(params, parent = nil)
-        instance = self.new(params, parent)
+      def build_instance(params, parent, name)
+        instance = self.new(params, parent, name)
         instance.destroyed? ? nil : instance
       end
     end
 
-    attr_reader :parent, :id, :params
+    attr_reader :parent, :id, :params, :parent_attribute_name
 
-    def initialize(params={}, parent = nil)
+    def initialize(params={}, parent, parent_attribute_name)
       @parent = parent
+      @parent_attribute_name = parent_attribute_name.to_sym
       @id = extract_id(params)
       @params = extract_initialization_params(params)
       super(@params)

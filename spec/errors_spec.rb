@@ -44,6 +44,10 @@ describe SimpleParams::Errors do
       nil
     end
 
+    def parent_attribute_name
+      :dog
+    end
+
     def read_attribute_for_validation(attr)
       send(attr)
     end
@@ -69,6 +73,10 @@ describe SimpleParams::Errors do
 
     def id
       123
+    end
+
+    def parent_attribute_name
+      :cats
     end
 
     def read_attribute_for_validation(attr)
