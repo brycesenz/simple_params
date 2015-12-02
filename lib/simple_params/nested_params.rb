@@ -17,71 +17,76 @@ module SimpleParams
         !!options[:with_ids]
       end
 
+      def optional?
+        !!options[:optional]
+      end
+
       def define_new_hash_class(parent, name, options, &block)
-        options = options.merge(type: :hash)
-        define_new_class(parent, name, options, &block)
+        define_new_class(parent, name, options.merge(type: :hash), &block)
       end
 
       def define_new_array_class(parent, name, options, &block)
-        options = options.merge(type: :array)
-        define_new_class(parent, name, options, &block)
+        define_new_class(parent, name, options.merge(type: :array), &block)
+      end
+
+      def build(params, parent, name)
+        if params.is_a?(Array)
+          params.map { |p| build_instance(p, parent, name) }.compact
+        elsif with_ids?
+          params.each_pair.map { |key, val| build_instance({key => val}, parent, name) }.compact
+        else
+          build_instance(params, parent, name)
+        end
       end
 
       private
       def define_new_class(parent, name, options, &block)
-        klass_name = name.to_s.split('_').collect(&:capitalize).join
-        Class.new(self).tap do |klass|
-          parent.send(:remove_const, klass_name) if parent.const_defined?(klass_name)
-          parent.const_set(klass_name, klass)
-          klass.instance_eval <<-DEF
-            def parent_class
-              #{parent}
-            end
-          DEF
-          extend ActiveModel::Naming
-          klass.class_eval(&block)
-          klass.class_eval("self.options = #{options}")
-          if klass.parent_class.using_rails_helpers?
-            klass.instance_eval("with_rails_helpers")
-          end
+        NestedParamsClassBuilder.new(parent).build(self, name, options, &block)
+      end
 
-          # define a _destroy param (Boolean, default: false)
-          if klass.using_rails_helpers?
-            klass.send(:define_attribute, :_destroy, {type: :boolean, default: false})
-          end
-        end
+      def build_instance(params, parent, name)
+        instance = self.new(params, parent, name)
+        instance.destroyed? ? nil : instance
       end
     end
 
-    def initialize(params={}, parent = nil)
+    attr_reader :parent, :id, :params, :parent_attribute_name
+
+    def initialize(params={}, parent, parent_attribute_name)
       @parent = parent
-      super(params)
+      @parent_attribute_name = parent_attribute_name.to_sym
+      @id = extract_id(params)
+      @params = extract_initialization_params(params)
+      super(@params)
     end
 
-    def id
-      @id ||= nil
-    end
-
-    def set_accessors(params={})
-      if class_has_ids?
-        @id = params.keys.first
-        params = params.values.first || {}
-      end
-
-      super(params)
+    def destroyed?
+      sym_params = symbolize_params(params)
+      [true, 1, "1", "true"].include?(sym_params[:_destroy])
     end
 
     private
-    def class_has_ids?
+    def with_ids?
       self.class.with_ids?
     end
 
-    def hash_class?
-      self.class.hash?
+    def symbolize_params(params)
+      Hash[params.map{ |k, v| [k.to_sym, v] }]
     end
 
-    def array_class?
-      self.class.array?
+    def extract_id(params)
+      if with_ids?
+        id = params.keys[0]
+        id ? id.to_sym : nil
+      end
+    end
+
+    def extract_initialization_params(params)
+      if with_ids?
+        params.values[0] || {}
+      else
+        params || {}
+      end
     end
   end
 end

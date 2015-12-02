@@ -34,20 +34,12 @@ module SimpleParams
 
     def clear
       super
-      @nested_classes.map do |attribute, klass| 
-        run_or_mapped_run(klass) do |k| 
-          k.errors.clear
-        end
-      end
+      nested_instances.each { |i| i.errors.clear }
     end
 
     def empty?
       super &&
-      @nested_classes.all? do |attribute, klass|
-        run_or_mapped_run(klass) do |k| 
-          k.errors.empty?
-        end
-      end
+      nested_instances.all? { |i| i.errors.empty? }
     end
     alias_method :blank?, :empty? 
 
@@ -63,20 +55,15 @@ module SimpleParams
 
     def values
       messages.values +
-      @nested_classes.map do |key, klass|
-        run_or_mapped_run(klass) { |k| k.errors.values }
-      end
+      nested_instances.map { |i| i.errors.values }
     end
 
     def full_messages
       parent_messages = map { |attribute, message| full_message(attribute, message) }
-      nested_messages = @nested_classes.map do |attribute, klass|
-        run_or_mapped_run(klass) do |k|
-          unless k.errors.full_messages.nil?
-            k.errors.full_messages.map { |message| "#{attribute} " + message }
-          end
-        end
+      nested_messages = nested_instances.map do |i| 
+        i.errors.full_messages.map { |message| "#{i.parent_attribute_name} " + message }
       end
+
       (parent_messages + nested_messages).flatten
     end
 
@@ -93,11 +80,12 @@ module SimpleParams
           msgs.merge!(attribute.to_sym => nested_msgs)
         end
       end
+
       msgs
     end
 
     def to_s(full_messages = false)
-      array = to_a
+      array = to_a.compact
       array.join(', ')
     end
 
@@ -135,7 +123,7 @@ module SimpleParams
     end
 
     def empty_messages?(msgs)
-      msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all?(&:empty?))
+      msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all? { |m| m.nil? || m.empty? })
     end
 
     def run_or_mapped_run(object, &block)
@@ -148,6 +136,22 @@ module SimpleParams
 
     def symbolize_nested(nested)
       nested.inject({}) { |memo,(k,v) | memo[k.to_sym] = v; memo }
+    end
+
+
+    def nested_instances
+      array =[]
+      @nested_classes.each do |key, instance|
+        if instance.is_a?(Array)
+          array << instance
+          array = array.flatten.compact
+        else
+          unless instance.nil?
+            array << instance
+          end
+        end
+      end
+      array
     end
   end
 end
