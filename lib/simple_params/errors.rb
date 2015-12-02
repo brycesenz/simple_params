@@ -36,7 +36,9 @@ module SimpleParams
       super
       @nested_classes.map do |attribute, klass| 
         run_or_mapped_run(klass) do |k| 
-          k.errors.clear
+          unless k.nil?
+            k.errors.clear
+          end
         end
       end
     end
@@ -45,7 +47,7 @@ module SimpleParams
       super &&
       @nested_classes.all? do |attribute, klass|
         run_or_mapped_run(klass) do |k| 
-          k.errors.empty?
+          k.nil? || k.errors.empty?
         end
       end
     end
@@ -72,7 +74,7 @@ module SimpleParams
       parent_messages = map { |attribute, message| full_message(attribute, message) }
       nested_messages = @nested_classes.map do |attribute, klass|
         run_or_mapped_run(klass) do |k|
-          unless k.errors.full_messages.nil?
+          unless k.nil? || k.errors.full_messages.nil?
             k.errors.full_messages.map { |message| "#{attribute} " + message }
           end
         end
@@ -135,7 +137,7 @@ module SimpleParams
     end
 
     def empty_messages?(msgs)
-      msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all?(&:empty?))
+      msgs.nil? || msgs.empty? || (msgs.is_a?(Array) && msgs.all? { |m| m.nil? || m.empty? })
     end
 
     def run_or_mapped_run(object, &block)

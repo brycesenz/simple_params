@@ -122,7 +122,7 @@ describe SimpleParams::Params do
           state: "North Carolina",
           company: nil
         },
-        phone: {},
+        phone: nil,
         dogs: [
           {
             name: "Spot",
@@ -137,7 +137,6 @@ describe SimpleParams::Params do
           }
         ],
         birds: [
-          {}
         ]
       })
     end
@@ -413,11 +412,13 @@ describe SimpleParams::Params do
           }
         end
 
-        it "is valid after multiple times" do
+        it "is valid after multiple times", failing: true do
           acceptance_params = AcceptanceParams.new(params)
           acceptance_params.valid?
           acceptance_params.should be_valid
+          acceptance_params.errors.should be_empty
           acceptance_params.should be_valid
+          acceptance_params.errors.should be_empty
         end
 
         it "is invalidated if validity changes after initial assignment" do

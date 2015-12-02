@@ -32,9 +32,9 @@ module SimpleParams
       if nested_class.is_a?(Array)
         # Have to map? & THEN all?, or else it won't
         #  necessarily call valid? on every object
-        nested_class.map(&:valid?).all?
+        nested_class.map { |klass| klass.nil? || klass.valid? }.all?
       else
-        nested_class.valid?
+        nested_class.nil? || nested_class.valid?
       end
     end
   end

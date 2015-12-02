@@ -12,12 +12,16 @@ module SimpleParams
       attributes = @params.attributes
       attributes.each do |attribute|
         raw_attribute = @params.send(attribute)
-        if raw_attribute.is_a?(SimpleParams::Params)
+        if raw_attribute.nil?
+          hash[attribute] = nil
+        elsif raw_attribute.is_a?(SimpleParams::Params)
           hash[attribute] = @params.send(attribute).to_hash
         elsif raw_attribute.is_a?(Array)
           attribute_array = []
           raw_attribute.each do |r_attr|
-            attribute_array << r_attr.to_hash
+            unless r_attr.nil?
+              attribute_array << r_attr.to_hash
+            end
           end
           hash[attribute] = attribute_array
         else

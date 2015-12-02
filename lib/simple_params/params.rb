@@ -73,16 +73,28 @@ module SimpleParams
           if instance_variable_defined?("@#{name}")
             instance_variable_get("@#{name}")
           else
+            # # This logic basically sets the nested class to an instance of itself, unless
+            # #  it is optional.
+            # klass_instance = klass.new({}, self)
+            # init_value = if opts[:optional]
+            #   # nil
+            #   NilParams.define_nil_class(klass).new
+            # else 
+            #   klass_instance
+            # end
+            # init_value = klass.hash? ? init_value : [init_value]
+            # instance_variable_set("@#{name}", init_value)
+
+
+
             # This logic basically sets the nested class to an instance of itself, unless
             #  it is optional.
-            klass_instance = klass.new({}, self)
-            init_value = if opts[:optional]
-              # nil
-              NilParams.define_nil_class(klass).new
+            init = if opts[:optional]
+              nil
             else 
-              klass_instance
+              klass_instance = klass.new({}, self)
             end
-            init_value = klass.hash? ? init_value : [init_value]
+            init_value = klass.hash? ? init : [init]
             instance_variable_set("@#{name}", init_value)
           end
         end
