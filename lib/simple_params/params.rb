@@ -29,10 +29,10 @@ module SimpleParams
         add_validations(name, opts)
       end
 
-      def add_validations(name, opts = {})
-        validation_string = ValidationBuilder.new(name, opts).validation_string
-        eval(validation_string)
-      end
+      # def add_validations(name, opts = {})
+      #   validation_string = ValidationBuilder.new(name, opts).validation_string
+      #   eval(validation_string)
+      # end
 
       def nested_classes
         @nested_classes ||= {}

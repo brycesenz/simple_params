@@ -6,6 +6,13 @@ class AcceptanceParams < SimpleParams::Params
   param :reference, type: :object, optional: true
   param :name
   param :date_of_birth, type: :date, optional: true
+  param :content, optional: true, validations: { length: {
+    minimum: 20,
+    maximum: 40,
+    tokenizer: lambda { |str| str.split(/\s+/) },
+    too_short: "must have at least %{count} words",
+    too_long: "must have at most %{count} words"
+  } }
   param :current_time, type: :datetime, optional: true
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :color, default: "red", validations: { inclusion: { in: ["red", "green"] }}
@@ -116,6 +123,7 @@ describe SimpleParams::Params do
         reference: nil,
         name: "Tom", 
         date_of_birth: nil,
+        content: nil,
         current_time: nil,
         age: nil,
         color: "red",
@@ -271,7 +279,7 @@ describe SimpleParams::Params do
   describe "attributes", attributes: true do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
-      params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
+      params.attributes.should eq([:reference, :name, :date_of_birth, :content, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
     end
 
     it "returns array of attribute symbols for nested class" do
@@ -634,6 +642,7 @@ describe SimpleParams::Params do
         param:reference, Object, desc:'', required: false
         param :name, String, desc: '', required: true
         param :date_of_birth, Date, desc: '', required: false
+        param:content,String,desc:'',required:false
         param :current_time, desc: '', required: false
         param :age, Integer, desc: '', required: false
         param :color, String, desc: '', required: false

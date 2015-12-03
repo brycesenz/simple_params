@@ -1,6 +1,7 @@
 module SimpleParams
   module HasAttributes
     extend ActiveSupport::Concern
+
     included do
       def attributes
         (defined_attributes.keys + nested_classes.keys).flatten
@@ -32,6 +33,24 @@ module SimpleParams
           attribute = send("#{name}_attribute")
           attribute.send("value=", val)
         end
+      end
+
+      def add_validations(name, opts = {})
+        validations = opts[:validations] || {}
+        has_default = opts.has_key?(:default) # checking has_key? because :default may be nil
+        optional = opts[:optional]
+        if !validations.empty?
+          if optional || has_default
+            validations.merge!(allow_nil: true)
+          else
+            validations.merge!(presence: true)
+          end
+        else
+          if !optional && !has_default
+            validations.merge!(presence: true)
+          end
+        end
+        validates name, validations unless validations.empty?
       end
     end
   end
