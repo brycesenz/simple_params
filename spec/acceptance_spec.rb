@@ -179,6 +179,10 @@ describe SimpleParams::Params do
             "0" => { name: "Paws" },
             "1" => { name: "Turbo", _destroy: "1" },
             "2" => { name: "Felix" }
+          },
+          birds: {
+            "0" => { name: "Birdy" },
+            "1" => { name: "Tweety", _destroy: "1" }
           }
         }
       end
@@ -191,6 +195,10 @@ describe SimpleParams::Params do
 
       it "builds correct number of cats" do
         subject.cats.count.should eq(2)
+      end
+
+      it "builds correct number of birds" do
+        subject.birds.count.should eq(1)
       end
     end
   end
