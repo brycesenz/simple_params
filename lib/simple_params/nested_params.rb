@@ -52,7 +52,9 @@ module SimpleParams
 
     attr_reader :parent, :id, :params, :parent_attribute_name
 
-    def initialize(params={}, parent, parent_attribute_name)
+    # Should allow NestedParams to be initialized with no arguments, in order
+    #  to be compatible with some Rails form gems like 'nested_form'
+    def initialize(params={}, parent = nil, parent_attribute_name = nil)
       @parent = parent
       @parent_attribute_name = parent_attribute_name.to_sym
       @id = extract_id(params)
