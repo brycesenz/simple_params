@@ -283,7 +283,7 @@ describe SimpleParams::Params do
     end
 
     it "returns array of attribute symbols for nested class" do
-      params = AcceptanceParams::Address.new({}, nil, "address")
+      params = AcceptanceParams::Address.new({}, nil, :address)
       params.parent_attribute_name.should eq(:address)
       params.attributes.should eq([:street, :city, :zip_code, :state, :company, :_destroy])
     end

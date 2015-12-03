@@ -57,9 +57,6 @@ module SimpleParams
     def initialize(params={}, parent = nil, parent_attribute_name = nil)
       @parent = parent
       @parent_attribute_name = parent_attribute_name
-      if @parent_attribute_name.respond_to?(:to_sym)
-        @parent_attribute_name = @parent_attribute_name.to_sym
-      end
       @id = extract_id(params)
       @params = extract_initialization_params(params)
       super(@params)
@@ -81,8 +78,7 @@ module SimpleParams
 
     def extract_id(params)
       if with_ids?
-        id = params.keys[0]
-        id ? id.to_sym : nil
+        params.keys[0]
       end
     end
 

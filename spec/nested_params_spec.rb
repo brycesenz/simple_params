@@ -136,7 +136,7 @@ describe SimpleParams::NestedParams do
         end
 
         specify "id" do
-          expect(subject.id).to eq :"132"
+          expect(subject.id).to eq "132"
         end
       end
     end
@@ -184,7 +184,7 @@ describe SimpleParams::NestedParams do
         end
 
         specify "id" do
-          expect(subject.id).to eq :"132"
+          expect(subject.id).to eq "132"
         end
       end
     end
