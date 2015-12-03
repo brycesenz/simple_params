@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 class AcceptanceParams < SimpleParams::Params
+  with_rails_helpers
   allow_undefined_params
   param :reference, type: :object, optional: true
   param :name
@@ -24,18 +25,15 @@ class AcceptanceParams < SimpleParams::Params
   end
 
   nested_array :dogs do
-    with_rails_helpers
     param :name
     param :age, type: :integer, validations: { inclusion: { in: 1..20 } }
   end
 
   nested_array :cats, with_ids: true do
-    with_rails_helpers
     param :name
   end
 
   nested_array :birds, optional: true, with_ids: true do
-    with_rails_helpers
     param :name
   end
 
@@ -70,6 +68,13 @@ describe SimpleParams::Params do
     it "can get array association classes" do
       klass = AcceptanceParams.reflect_on_association(:dogs).klass
       klass.should eq(AcceptanceParams::Dogs)
+    end
+  end
+
+  describe "rails_helpers", rails_helpers: true do
+    it "can build optional class" do
+      klass = AcceptanceParams.new.build_phone
+      klass.should be_a(AcceptanceParams::Phone)
     end
   end
 
@@ -120,7 +125,8 @@ describe SimpleParams::Params do
           city: nil,
           zip_code: nil,
           state: "North Carolina",
-          company: nil
+          company: nil,
+          _destroy: false
         },
         phone: nil,
         dogs: [
@@ -159,6 +165,33 @@ describe SimpleParams::Params do
       nested = AcceptanceParams.new.address
       name = nested.class.name
       name.should eq("AcceptanceParams::Address")
+    end
+
+    describe "params assignment" do
+      let(:params) do
+        {
+          dogs: [
+            { name: "Max", age: 12 },
+            { name: "Spot", age: 4 },
+            { name: "Pants", age: 6, _destroy: true },
+          ],
+          cats: {
+            "0" => { name: "Paws" },
+            "1" => { name: "Turbo", _destroy: "1" },
+            "2" => { name: "Felix" }
+          }
+        }
+      end
+
+      subject { AcceptanceParams.new(params) }
+
+      it "builds correct number of dogs" do
+        subject.dogs.count.should eq(2)
+      end
+
+      it "builds correct number of cats" do
+        subject.cats.count.should eq(2)
+      end
     end
   end
 
@@ -233,10 +266,10 @@ describe SimpleParams::Params do
       params.attributes.should eq([:reference, :name, :date_of_birth, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
     end
 
-    it "returns array of attribute symbols for nested class", failing: true do
+    it "returns array of attribute symbols for nested class" do
       params = AcceptanceParams::Address.new({}, nil, "address")
       params.parent_attribute_name.should eq(:address)
-      params.attributes.should eq([:street, :city, :zip_code, :state, :company])
+      params.attributes.should eq([:street, :city, :zip_code, :state, :company, :_destroy])
     end
 
     it "initializes attributes correctly" do
@@ -352,31 +385,31 @@ describe SimpleParams::Params do
         params.errors[:dogs][1][:age].should eq(["is not included in the list", "can't be blank"])
       end
 
-      # it "initializes birds as empty", failing: true do
-      #   params = AcceptanceParams.new
-      #   params.birds.should be_empty
-      # end
+      it "initializes birds as nil" do
+        params = AcceptanceParams.new
+        params.birds.should be_empty
+      end
 
-      # it "allows absense of optional params", failing: true do
-      #   params = AcceptanceParams.new(
-      #     name: "test",
-      #     address: {
-      #       street: "1 Main St.",
-      #       city: "Asheville",
-      #       zip_code: "28806"
-      #     },
-      #     dogs: [
-      #       { name: "spot", age: 13 }
-      #     ],
-      #     cats: {
-      #       "0" => {
-      #         name: "Purr"
-      #       }
-      #     },
-      #   )
-      #   params.birds.should be_empty
-      #   params.should be_valid
-      # end
+      it "allows absense of optional params" do
+        params = AcceptanceParams.new(
+          name: "test",
+          address: {
+            street: "1 Main St.",
+            city: "Asheville",
+            zip_code: "28806"
+          },
+          dogs: [
+            { name: "spot", age: 13 }
+          ],
+          cats: {
+            "0" => {
+              name: "Purr"
+            }
+          },
+        )
+        params.birds.should be_empty
+        params.should be_valid
+      end
     end
 
     describe "#validate!" do
@@ -603,9 +636,11 @@ describe SimpleParams::Params do
           param :zip_code, String, desc: '', required: false
           param :state, String, desc: '', required: false
           param :company, String, desc: '', required: false
+          param :_destroy, Boolean, desc:'', required: false
         end
         param :phone, Hash, desc: '', required: false do
           param :phone_number, String, desc: '', required: true
+          param :_destroy, Boolean, desc:'', required: false
         end
         param :dogs, Array, desc: '', required: true do
           param :name, String, desc: '', required: true

@@ -75,12 +75,12 @@ module SimpleParams
           else
             # This logic basically sets the nested class to an instance of itself, unless
             #  it is optional.
-            init = if opts[:optional]
-              nil
+            init_value = if opts[:optional]
+              klass.hash? ? nil : []
             else 
               klass_instance = klass.new({}, self, name)
+              klass.hash? ? klass_instance : [klass_instance]
             end
-            init_value = klass.hash? ? init : [init]
             instance_variable_set("@#{name}", init_value)
           end
         end
