@@ -56,7 +56,10 @@ module SimpleParams
     #  to be compatible with some Rails form gems like 'nested_form'
     def initialize(params={}, parent = nil, parent_attribute_name = nil)
       @parent = parent
-      @parent_attribute_name = parent_attribute_name.to_sym
+      @parent_attribute_name = parent_attribute_name
+      if @parent_attribute_name.respond_to?(:to_sym)
+        @parent_attribute_name = @parent_attribute_name.to_sym
+      end
       @id = extract_id(params)
       @params = extract_initialization_params(params)
       super(@params)
