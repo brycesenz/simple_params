@@ -4,35 +4,43 @@ module SimpleParams
 
     def initialize(parent)
       @parent = parent
-      @list = {}
-      @hashes = []
-      @arrays = []
-      @all = []
     end
 
     def to_hash
-      nested_class_hash = {}
-      @parent.nested_class_attributes.each do |param|
-        nested_class_hash[param.to_sym] = @parent.send(param)
-      end
       nested_class_hash
     end
 
-    # def add_class(instance, symbol, opts = {})
-    #   if [:array, 'array'].include?(opts[:type])
-    #     @list[symbol.to_sym] ||= []
-    #     @list[symbol.to_sym] << instance
-    #     @arrays << instance
-    #   else
-    #     @list[symbol.to_sym] = instance
-    #     @hashes << instance
-    #   end
-    #   @all << instance
-    #   instance
-    # end
+    def get_class_key(klass)
+      nested_class_hash.each do |key, value|
+        if value.is_a?(Array)
+          return key if value.include?(klass)
+        else
+          return key if value == klass
+        end
+      end
+    end
 
-    # def [](symbol)
-    #   @list[symbol.to_sym]
-    # end
+    def class_instances
+      nested_class_hash.each_pair.inject([]) do |array, (key, value)|
+        array << value
+        array.flatten.compact
+      end
+    end
+
+    private
+    def nested_class_hash
+      @nested_class_hash ||= nested_class_attributes.inject({}) do |hash, param|
+        hash[param.to_sym] = get_nested_class_from_parent(param)
+        hash
+      end
+    end
+
+    def nested_class_attributes
+      @parent.nested_class_attributes
+    end
+
+    def get_nested_class_from_parent(klass)
+      @parent.send(klass)
+    end
   end
 end

@@ -85,6 +85,11 @@ module SimpleParams
           end
         end
 
+        define_method("#{name}_params") do
+          original_params = instance_variable_get("@original_params")
+          original_params[:"#{name}"] || original_params[:"#{name}_attributes"]
+        end
+
         define_method("#{name}=") do |initializer|
           init_value = klass.build(initializer, self, name)
           instance_variable_set("@#{name}", init_value)
@@ -106,7 +111,7 @@ module SimpleParams
 
     def define_attributes(params)
       self.class.defined_attributes.each_pair do |key, opts|
-        send("#{key}_attribute=", Attribute.new(self, key, opts))
+        self.send("#{key}_attribute=", Attribute.new(self, key, opts))
       end
     end
 
@@ -118,12 +123,16 @@ module SimpleParams
       nested_classes.keys
     end
 
-    def nested_classes
-      @nested_class_list.all
+    def nested_class_hash
+      nested_class_list.to_hash
+    end
+
+    def all_nested_classes
+      nested_class_list.class_instances
     end
 
     def errors
-      @errors ||= SimpleParams::Errors.new(self, nested_class_list.to_hash)
+      @errors ||= SimpleParams::Errors.new(self, nested_class_hash)
     end
 
     private

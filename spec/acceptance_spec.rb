@@ -104,6 +104,23 @@ describe SimpleParams::Params do
     end
   end
 
+
+  describe "nested_parameter_accessors", nested_parameter_accessors: true do
+    it "returns params hash for nested attribute" do
+      params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
+      params.address_params.should eq({
+        street: "1 Main St."
+      })
+    end
+
+    it "returns params hash for nested attribute" do
+      params = AcceptanceParams.new(name: "Tom", address_attributes: { "street" => "1 Main St."} )
+      params.address_params.should eq({
+        street: "1 Main St."
+      })
+    end
+  end
+
   describe "to_hash", to_hash: true do
     it "returns params hash" do
       params = AcceptanceParams.new(
@@ -372,7 +389,7 @@ describe SimpleParams::Params do
     end
 
     describe "nested hashes", nested_hash: true do
-      it "validates presence of required param", failing: true do
+      it "validates presence of required param" do
         params.should_not be_valid
         params.errors[:address][:street].should eq(["can't be blank"])
       end
@@ -594,7 +611,7 @@ describe SimpleParams::Params do
           }
         end
 
-        it "is valid after multiple times" do
+        it "is valid after multiple times", failing: true do
           acceptance_params = AcceptanceParams.new(params)
           acceptance_params.valid?
           acceptance_params.should be_valid
