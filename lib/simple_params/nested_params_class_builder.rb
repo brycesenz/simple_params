@@ -7,14 +7,21 @@ module SimpleParams
     #TODO: Need to test this!
     def build(nested_params, name, options, &block)
       klass_name = name.to_s.split('_').collect(&:capitalize).join
+      name_symbol = name.to_sym
       Class.new(nested_params).tap do |klass|
         @parent.send(:remove_const, klass_name) if @parent.const_defined?(klass_name)
         @parent.const_set(klass_name, klass)
+
         klass.instance_eval <<-DEF
           def parent_class
             #{@parent}
           end
+
+          def name_symbol
+            :#{name_symbol}
+          end
         DEF
+
         klass.class_eval('extend ActiveModel::Naming')
         klass.class_eval(&block)
         klass.class_eval("self.options = #{options}")

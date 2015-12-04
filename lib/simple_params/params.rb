@@ -78,7 +78,7 @@ module SimpleParams
             init_value = if opts[:optional]
               klass.hash? ? nil : []
             else 
-              klass_instance = klass.new({}, self, name)
+              klass_instance = klass.new({}, self)
               klass.hash? ? klass_instance : [klass_instance]
             end
             instance_variable_set("@#{name}", init_value)
@@ -101,9 +101,6 @@ module SimpleParams
       params = InitializationHash.new(params)
       @original_params = params.original_params
       define_attributes(@original_params)
-
-      # Nested Classes
-      @nested_classes = nested_classes.keys
       set_accessors(params)
     end
 
@@ -117,12 +114,16 @@ module SimpleParams
       HashBuilder.new(self).build
     end
 
+    def nested_class_attributes
+      nested_classes.keys
+    end
+
+    def nested_classes
+      @nested_class_list.all
+    end
+
     def errors
-      nested_class_hash = {}
-      @nested_classes.each do |param|
-        nested_class_hash[param.to_sym] = send(param)
-      end
-      @errors ||= SimpleParams::Errors.new(self, nested_class_hash)
+      @errors ||= SimpleParams::Errors.new(self, nested_class_list.to_hash)
     end
 
     private
@@ -130,6 +131,10 @@ module SimpleParams
       params.each do |attribute_name, value|
         send("#{attribute_name}=", value)
       end
+    end
+
+    def nested_class_list
+      @nested_class_list ||= NestedClassList.new(self)
     end
 
     def defined_attributes

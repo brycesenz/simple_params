@@ -31,11 +31,11 @@ module SimpleParams
 
       def build(params, parent, name)
         if params.is_a?(Array)
-          params.map { |p| build_instance(p, parent, name) }.compact
+          params.map { |p| build_instance(p, parent) }.compact
         elsif with_ids?
-          params.each_pair.map { |key, val| build_instance({key => val}, parent, name) }.compact
+          params.each_pair.map { |key, val| build_instance({key => val}, parent) }.compact
         else
-          build_instance(params, parent, name)
+          build_instance(params, parent)
         end
       end
 
@@ -44,8 +44,8 @@ module SimpleParams
         NestedParamsClassBuilder.new(parent).build(self, name, options, &block)
       end
 
-      def build_instance(params, parent, name)
-        instance = self.new(params, parent, name)
+      def build_instance(params, parent)
+        instance = self.new(params, parent)
         instance.destroyed? ? nil : instance
       end
     end
@@ -54,12 +54,19 @@ module SimpleParams
 
     # Should allow NestedParams to be initialized with no arguments, in order
     #  to be compatible with some Rails form gems like 'nested_form'
-    def initialize(params={}, parent = nil, parent_attribute_name = nil)
+    def initialize(params={}, parent = nil)
       @parent = parent
-      @parent_attribute_name = parent_attribute_name
       @id = extract_id(params)
       @params = extract_initialization_params(params)
       super(@params)
+    end
+
+    def array?
+      self.class.array?
+    end
+
+    def symbol
+      self.class.name_symbol
     end
 
     def destroyed?

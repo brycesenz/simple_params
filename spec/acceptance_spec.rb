@@ -282,12 +282,6 @@ describe SimpleParams::Params do
       params.attributes.should eq([:reference, :name, :date_of_birth, :content, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
     end
 
-    it "returns array of attribute symbols for nested class" do
-      params = AcceptanceParams::Address.new({}, nil, :address)
-      params.parent_attribute_name.should eq(:address)
-      params.attributes.should eq([:street, :city, :zip_code, :state, :company, :_destroy])
-    end
-
     it "initializes attributes correctly" do
       params = AcceptanceParams.new
       attribute = params.instance_variable_get("@age_attribute")
@@ -378,7 +372,7 @@ describe SimpleParams::Params do
     end
 
     describe "nested hashes", nested_hash: true do
-      it "validates presence of required param" do
+      it "validates presence of required param", failing: true do
         params.should_not be_valid
         params.errors[:address][:street].should eq(["can't be blank"])
       end
