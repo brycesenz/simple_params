@@ -28,6 +28,10 @@ describe SimpleParams::NestedParams do
         defined_class.name.should eq("DummyParentClass::MySpecialParams")
       end
 
+      it "has correct name_symbol", failing: true do
+        defined_class.name_symbol.should eq(:my_special_params)
+      end
+
       it "has correct parent class" do
         defined_class.parent_class.should eq(DummyParentClass)
       end
@@ -102,7 +106,7 @@ describe SimpleParams::NestedParams do
           end
         end
 
-        subject { defined_class.new({name: "Bill", age: 21}, nil, :my_special_params) }
+        subject { defined_class.new(name: "Bill", age: 21) }
         
         specify "name" do
           expect(subject.name).to eq "Bill"
@@ -125,7 +129,7 @@ describe SimpleParams::NestedParams do
           end
         end
 
-        subject { defined_class.new({ "132" => { name: "Bill", age: 21 } }, nil, :my_special_params) }
+        subject { defined_class.new({ "132" => { name: "Bill", age: 21 } }) }
         
         specify "name" do
           expect(subject.name).to eq "Bill"
@@ -150,7 +154,7 @@ describe SimpleParams::NestedParams do
           end
         end
 
-        subject { defined_class.new({name: "Bill", age: 21}, nil, :my_special_params) }
+        subject { defined_class.new(name: "Bill", age: 21) }
         
         specify "name" do
           expect(subject.name).to eq "Bill"
@@ -173,7 +177,7 @@ describe SimpleParams::NestedParams do
           end
         end
 
-        subject { defined_class.new({ "132" => { name: "Bill", age: 21 } }, nil, :my_special_params) }
+        subject { defined_class.new({ "132" => { name: "Bill", age: 21 } }) }
         
         specify "name" do
           expect(subject.name).to eq "Bill"

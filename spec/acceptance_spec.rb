@@ -104,6 +104,23 @@ describe SimpleParams::Params do
     end
   end
 
+
+  describe "nested_parameter_accessors", nested_parameter_accessors: true do
+    it "returns params hash for nested attribute" do
+      params = AcceptanceParams.new(name: "Tom", address: { "street" => "1 Main St."} )
+      params.address_params.should eq({
+        street: "1 Main St."
+      })
+    end
+
+    it "returns params hash for nested attribute" do
+      params = AcceptanceParams.new(name: "Tom", address_attributes: { "street" => "1 Main St."} )
+      params.address_params.should eq({
+        street: "1 Main St."
+      })
+    end
+  end
+
   describe "to_hash", to_hash: true do
     it "returns params hash" do
       params = AcceptanceParams.new(
@@ -280,12 +297,6 @@ describe SimpleParams::Params do
     it "returns array of attribute symbols" do
       params = AcceptanceParams.new
       params.attributes.should eq([:reference, :name, :date_of_birth, :content, :current_time, :age, :color, :sibling_names, :address, :phone, :dogs, :cats, :birds])
-    end
-
-    it "returns array of attribute symbols for nested class" do
-      params = AcceptanceParams::Address.new({}, nil, :address)
-      params.parent_attribute_name.should eq(:address)
-      params.attributes.should eq([:street, :city, :zip_code, :state, :company, :_destroy])
     end
 
     it "initializes attributes correctly" do
@@ -600,7 +611,7 @@ describe SimpleParams::Params do
           }
         end
 
-        it "is valid after multiple times" do
+        it "is valid after multiple times", failing: true do
           acceptance_params = AcceptanceParams.new(params)
           acceptance_params.valid?
           acceptance_params.should be_valid

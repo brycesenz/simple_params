@@ -4,10 +4,11 @@ module SimpleParams
   class Errors < ActiveModel::Errors
     attr_reader :base
 
-    def initialize(base, nested_classes = {})
+    def initialize(base, nested_classes = {}, nested_classes_array = [])
       super(base)
       @base = base
       @nested_classes = symbolize_nested(nested_classes)
+      @nested_classes_array = nested_classes_array
     end
 
     def [](attribute)
@@ -98,11 +99,6 @@ module SimpleParams
       @nested_classes.keys.include?(attribute.to_sym)
     end
 
-    def set_nested(attribute)
-      klass = nested_class(attribute)
-      errors = run_or_mapped_run(klass) { |k| k.errors if k.present? }
-      set(attribute.to_sym, errors)
-    end
 
     def add_error_to_attribute(attribute, error)
       if nested_attribute?(attribute)
@@ -138,6 +134,11 @@ module SimpleParams
       nested.inject({}) { |memo,(k,v) | memo[k.to_sym] = v; memo }
     end
 
+    def set_nested(attribute)
+      klass = nested_class(attribute)
+      errors = run_or_mapped_run(klass) { |k| k.errors if k.present? }
+      set(attribute.to_sym, errors)
+    end
 
     def nested_instances
       array =[]

@@ -78,11 +78,16 @@ module SimpleParams
             init_value = if opts[:optional]
               klass.hash? ? nil : []
             else 
-              klass_instance = klass.new({}, self, name)
+              klass_instance = klass.new({}, self)
               klass.hash? ? klass_instance : [klass_instance]
             end
             instance_variable_set("@#{name}", init_value)
           end
+        end
+
+        define_method("#{name}_params") do
+          original_params = instance_variable_get("@original_params")
+          original_params[:"#{name}"] || original_params[:"#{name}_attributes"]
         end
 
         define_method("#{name}=") do |initializer|
@@ -101,15 +106,12 @@ module SimpleParams
       params = InitializationHash.new(params)
       @original_params = params.original_params
       define_attributes(@original_params)
-
-      # Nested Classes
-      @nested_classes = nested_classes.keys
       set_accessors(params)
     end
 
     def define_attributes(params)
       self.class.defined_attributes.each_pair do |key, opts|
-        send("#{key}_attribute=", Attribute.new(self, key, opts))
+        self.send("#{key}_attribute=", Attribute.new(self, key, opts))
       end
     end
 
@@ -117,11 +119,19 @@ module SimpleParams
       HashBuilder.new(self).build
     end
 
+    def nested_class_attributes
+      nested_classes.keys
+    end
+
+    def nested_class_hash
+      nested_class_list.to_hash
+    end
+
+    def all_nested_classes
+      nested_class_list.class_instances
+    end
+
     def errors
-      nested_class_hash = {}
-      @nested_classes.each do |param|
-        nested_class_hash[param.to_sym] = send(param)
-      end
       @errors ||= SimpleParams::Errors.new(self, nested_class_hash)
     end
 
@@ -130,6 +140,10 @@ module SimpleParams
       params.each do |attribute_name, value|
         send("#{attribute_name}=", value)
       end
+    end
+
+    def nested_class_list
+      @nested_class_list ||= NestedClassList.new(self)
     end
 
     def defined_attributes

@@ -23,19 +23,10 @@ module SimpleParams
 
     private
     def nested_classes_valid?
-      nested_classes.map do |key, array|
-        nested_class_valid?(send("#{key}") )
-      end.all?
-    end
-
-    def nested_class_valid?(nested_class)
-      if nested_class.is_a?(Array)
-        # Have to map? & THEN all?, or else it won't
-        #  necessarily call valid? on every object
-        nested_class.map { |klass| klass.nil? || klass.valid? }.all?
-      else
-        nested_class.nil? || nested_class.valid?
-      end
+      # Need to map them, THEN call all?, otherwise validations won't get run
+      # on every nested class
+      validations = all_nested_classes.map { |klass| klass.valid? }
+      validations.all?
     end
   end
 end
