@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple_params (1.6.4)
+    simple_params (1.6.5)
       activemodel (>= 3.0, < 5.0)
       shoulda-matchers (~> 2.8)
       virtus (>= 1.0.0)
@@ -9,10 +9,10 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (4.2.1)
-      activesupport (= 4.2.1)
+    activemodel (4.2.6)
+      activesupport (= 4.2.6)
       builder (~> 3.1)
-    activesupport (4.2.1)
+    activesupport (4.2.6)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       minitest (~> 5.1)
@@ -31,10 +31,10 @@ GEM
     diff-lcs (1.2.5)
     equalizer (0.0.11)
     i18n (0.7.0)
-    ice_nine (0.11.1)
-    json (1.8.2)
+    ice_nine (0.11.2)
+    json (1.8.3)
     method_source (0.8.2)
-    minitest (5.6.0)
+    minitest (5.9.0)
     pry (0.10.1)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -69,3 +69,6 @@ DEPENDENCIES
   rake (~> 10.1)
   rspec (~> 2.6)
   simple_params!
+
+BUNDLED WITH
+   1.12.5
