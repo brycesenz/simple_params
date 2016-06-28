@@ -30,6 +30,14 @@ module SimpleParams
       end
 
       def add_validations(name, opts = {})
+
+        conditional_validation = opts.fetch(:validations, {}).fetch(:if, nil)
+
+        if conditional_validation
+          opts[:optional] = false
+          opts[:validations].delete(:if)
+        end
+
         validations = ValidationBuilder.new(opts).build
         validates name, validations unless validations.empty?
       end

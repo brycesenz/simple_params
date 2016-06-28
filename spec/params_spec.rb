@@ -443,7 +443,7 @@ describe SimpleParams::Params do
                   param :address, Hash, desc: '', required: true do
                     param :street, String, desc: '', required: true
                     param :city, String, desc: '', required: true
-                    param :zip_code, String, desc: '', required: false
+                    param :zip_code, String, desc: '', required: true
                     param :state, String, desc: '', required: false
                   end
                   param :phone, Hash, desc: '', required: true do
