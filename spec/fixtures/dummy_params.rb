@@ -9,11 +9,15 @@ class DummyParams < SimpleParams::Params
   nested_hash :address do
     string_param :street
     string_param :city, validations: { length: { in: 4..40 } }
-    string_param :zip_code, optional: true, validations: { length: { in: 5..9 }, if: true }
+    string_param :zip_code, optional: true, validations: { length: { in: 5..9 }, if: :needs_validation? }
     param :state, default: "North Carolina", formatter: :transform_state_code
 
     def transform_state_code(val)
       val == "SC" ? "South Carolina" : val
+    end
+
+    def needs_validation?
+      true
     end
   end
 

@@ -207,6 +207,7 @@ describe SimpleParams::Params do
         params.should_not be_valid
         params.address.errors[:street].should eq(["can't be blank"])
         params.errors[:address][:street].should eq(["can't be blank"])
+        params.errors[:address][:zip_code].should eq(["is too short (minimum is 5 characters)", "can't be blank"])
       end
 
       it "validates nested arrays" do

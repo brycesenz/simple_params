@@ -35,7 +35,6 @@ module SimpleParams
 
         if conditional_validation
           opts[:optional] = false
-          opts[:validations].delete(:if)
         end
 
         validations = ValidationBuilder.new(opts).build
