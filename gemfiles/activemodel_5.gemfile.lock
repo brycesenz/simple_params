@@ -1,21 +1,20 @@
 PATH
-  remote: .
+  remote: ..
   specs:
     simple_params (1.6.9)
-      activemodel (>= 3.0, < 5.0)
+      activemodel (>= 3.0, < 6.0)
       shoulda-matchers (~> 2.8)
       virtus (>= 1.0.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (4.2.10)
-      activesupport (= 4.2.10)
-      builder (~> 3.1)
-    activesupport (4.2.10)
+    activemodel (5.1.4)
+      activesupport (= 5.1.4)
+    activesupport (5.1.4)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     appraisal (2.2.0)
       bundler
@@ -25,7 +24,6 @@ GEM
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
       thread_safe (~> 0.3, >= 0.3.1)
-    builder (3.2.3)
     coderay (1.1.0)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -69,6 +67,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activemodel (>= 5.0)
   appraisal
   bundler (~> 1.5)
   pry

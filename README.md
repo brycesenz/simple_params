@@ -8,6 +8,12 @@ This class provides the following benefits for handling params:
   * ActiveModel-like errors, including nested error objects for nested params
   * Parameter type-coercion (e.g. transform "1" into the Integer 1)
 
+## Versions
+
+Major Version 1 is compatible with Rails/ActiveModel 3 & 4
+
+Major Version 2 is compatible with Rails/ActiveModel 5
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -397,6 +403,17 @@ describe YourClass do
   it { should have_required_parameter(:account_type).with_allowed_values("checking", "savings") }
   it { should have_required_parameter(:account_status).with_default("active").with_allowed_values("active", "inactive") }
 end
+```
+
+## Testing this Gem
+
+We use Appraisals (https://github.com/thoughtbot/appraisal) as a way to make sure that the gem is compatible across different versions of our dependencies (ActiveModel being the biggest one).
+
+Any contributions should pass across all of our Appraisals, i.e.
+
+```ruby
+appraisal activemodel-3 rspec spec #=> Should all be green
+appraisal activemodel-4 rspec spec #=> Should all be green
 ```
 
 ## Contributing
