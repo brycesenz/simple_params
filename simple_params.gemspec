@@ -19,7 +19,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'activemodel', '>= 3.0', '<= 6.0'
-  # spec.add_dependency 'activemodel', '>= 4.0', '<= 5.0'
   spec.add_dependency 'virtus', '>= 1.0.0'
   spec.add_dependency 'shoulda-matchers', '~> 2.8'
   spec.add_development_dependency 'appraisal'
