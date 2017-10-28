@@ -1,5 +1,5 @@
 PATH
-  remote: .
+  remote: ..
   specs:
     simple_params (1.7.0)
       activemodel (>= 3.0, <= 6.0)
@@ -67,6 +67,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activemodel (>= 5.0)
   appraisal
   bundler (~> 1.5)
   pry

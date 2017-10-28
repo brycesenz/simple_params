@@ -15,7 +15,7 @@ module SimpleParams
       if nested_attribute?(attribute)
         set_nested(attribute)
       else
-        get(attribute.to_sym) || set(attribute.to_sym, [])
+        super(attribute)
       end
     end
 
@@ -24,6 +24,7 @@ module SimpleParams
     end
 
     def add(attribute, message = :invalid, options = {})
+      message = message.call if message.respond_to?(:call)
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -68,6 +69,10 @@ module SimpleParams
       (parent_messages + nested_messages).flatten
     end
 
+    def to_a
+      full_messages
+    end
+
     def to_hash(full_messages = false)
       msgs = get_messages(self, full_messages)
 
@@ -99,12 +104,11 @@ module SimpleParams
       @nested_classes.keys.include?(attribute.to_sym)
     end
 
-
-    def add_error_to_attribute(attribute, error)
+    def add_error_to_attribute(attribute, message)
       if nested_attribute?(attribute)
-        @nested_classes[attribute].errors.add(:base, error)
+        @nested_classes[attribute].errors.add(:base, message)
       else
-        self[attribute] << error
+        self[attribute] << message
       end
     end
 
@@ -137,7 +141,11 @@ module SimpleParams
     def set_nested(attribute)
       klass = nested_class(attribute)
       errors = run_or_mapped_run(klass) { |k| k.errors if k.present? }
-      set(attribute.to_sym, errors)
+      if respond_to?(:normalize_detail)
+        detail  = normalize_detail(errors, {})
+        details[attribute.to_sym] = detail
+      end
+      messages[attribute.to_sym] = errors
     end
 
     def nested_instances

@@ -10,9 +10,9 @@ This class provides the following benefits for handling params:
 
 ## Versions
 
-Major Version 1 is compatible with Rails/ActiveModel 3 & 4
+Major Version 1 is compatible with Rails/ActiveModel 3 & 4.
 
-Major Version 2 is compatible with Rails/ActiveModel 5
+Major Version 2 is compatible with Rails/ActiveModel 5, and is built to be backwards compatible with Rails/ActiveModel 3 & 4.
 
 ## Installation
 

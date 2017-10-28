@@ -53,59 +53,32 @@ describe SimpleParams::NestedErrors do
     end
   end
 
-  describe "setting and getting errors", setters_getters: true do
-    it "get returns the errors for the provided key" do
+  describe '[]', getter: true do
+    it "gets the errors for the provided key" do
+      errors = SimpleParams::NestedErrors.new(self)
+      errors.add(:foo, "omg")
+      errors[:foo].should eq(["omg"])
+    end
+
+    it "gets model errors" do
+      car = Car.new
+      car.errors.add(:make, "can not be blank")
+      car.errors.add(:make, "can not be nil")
+      car.errors[:make].should eq(["can not be blank", "can not be nil"])
+    end
+  end
+
+  describe '[]=', setter: true do
+    it "sets the errors for the provided key" do
       errors = SimpleParams::Errors.new(self)
       errors[:foo] = "omg"
-      errors.get(:foo).should eq(["omg"])
+      errors[:foo].should eq(["omg"])
     end
 
-    it "sets the error with the provided key" do
-      errors = SimpleParams::Errors.new(self)
-      errors.set(:foo, "omg")
-      errors.messages.should eq({ foo: "omg" })
-    end
-
-    it "values returns an array of messages" do
-      errors = SimpleParams::Errors.new(self)
-      errors.set(:foo, "omg")
-      errors.set(:baz, "zomg")
-      errors.values.should eq(["omg", "zomg"])
-    end
-
-    it "keys returns the error keys" do
-      errors = SimpleParams::Errors.new(self)
-      errors.set(:foo, "omg")
-      errors.set(:baz, "zomg")
-      errors.keys.should eq([:foo, :baz])
-    end    
-
-    describe "setting on model" do
-      it "assign error" do
-        car = Car.new
-        car.errors[:make] = 'should not be nil'
-        car.errors[:make].should eq(["should not be nil"])
-      end
-
-      it "add an error message on a specific attribute" do
-        car = Car.new
-        car.errors.add(:make, "can not be blank")
-        car.errors[:make].should eq(["can not be blank"])
-      end
-
-      it "add an error with a symbol" do
-        car = Car.new
-        car.errors.add(:make, :blank)
-        message = car.errors.generate_message(:make, :blank)
-        car.errors[:make].should eq([message])
-      end
-
-      it "add an error with a proc" do
-        car = Car.new
-        message = Proc.new { "can not be blank" }
-        car.errors.add(:make, message)
-        car.errors[:make].should eq(["can not be blank"])
-      end
+    it "sets model errors" do
+      car = Car.new
+      car.errors[:make] = "can not be blank"
+      car.errors[:make].should eq(["can not be blank"])
     end
   end
 
@@ -136,51 +109,6 @@ describe SimpleParams::NestedErrors do
     end
   end
 
-  describe "#added?", added: true do
-    it "added? detects if a specific error was added to the object" do
-      car = Car.new
-      car.errors.add(:make, "can not be blank")
-      car.errors.added?(:make, "can not be blank").should be_truthy
-    end
-
-    it "added? handles symbol message" do
-      car = Car.new
-      car.errors.add(:make, :blank)
-      car.errors.added?(:make, :blank).should be_truthy
-    end
-
-    it "added? handles proc messages" do
-      car = Car.new
-      message = Proc.new { "can not be blank" }
-      car.errors.add(:make, message)
-      car.errors.added?(:make, message).should be_truthy
-    end
-
-    it "added? defaults message to :invalid" do
-      car = Car.new
-      car.errors.add(:make)
-      car.errors.added?(:make).should be_truthy
-    end
-
-    it "added? matches the given message when several errors are present for the same attribute" do
-      car = Car.new
-      car.errors.add(:make, "can not be blank")
-      car.errors.add(:make, "is invalid")
-      car.errors.added?(:make, "can not be blank").should be_truthy
-    end
-
-    it "added? returns false when no errors are present" do
-      car = Car.new
-      car.errors.added?(:make).should_not be_truthy
-    end
-
-    it "added? returns false when checking a nonexisting error and other errors are present for the given attribute" do
-      car = Car.new
-      car.errors.add(:make, "is invalid")
-      car.errors.added?(:make, "can not be blank").should_not be_truthy
-    end    
-  end
-
   describe "#size", size: true do
     it "size calculates the number of error messages" do
       car = Car.new
@@ -205,7 +133,6 @@ describe SimpleParams::NestedErrors do
       car.errors.add(:make, "can not be nil")
       car.errors.to_s.should eq("make can not be blank, make can not be nil")
     end
-
   end
 
   describe "#to_hash", to_hash: true do
@@ -279,55 +206,6 @@ describe SimpleParams::NestedErrors do
       expect {
         car.errors.generate_message(:make, :blank)
       }.to_not raise_error
-    end
-  end
-
-  describe "#adds_on_empty", add_on_empty: true do
-    it "add_on_empty generates message" do
-      car = Car.new
-      car.errors.should_receive(:generate_message).with(:make, :empty, {})
-      car.errors.add_on_empty :make
-    end
-
-    it "add_on_empty generates message for multiple attributes" do
-      car = Car.new
-      car.errors.should_receive(:generate_message).with(:make, :empty, {})
-      car.errors.should_receive(:generate_message).with(:model, :empty, {})
-      car.errors.add_on_empty [:make, :model]
-    end
-
-    it "add_on_empty generates message with custom default message" do
-      car = Car.new
-      car.errors.should_receive(:generate_message).with(:make, :empty, { message: 'custom' })
-      car.errors.add_on_empty :make, message: 'custom'
-    end
-
-    it "add_on_empty generates message with empty string value" do
-      car = Car.new
-      car.make = ''
-      car.errors.should_receive(:generate_message).with(:make, :empty, {})
-      car.errors.add_on_empty :make
-    end
-  end
-
-  describe "#adds_on_blank", add_on_blank: true do
-    it "add_on_blank generates message" do
-      car = Car.new
-      car.errors.should_receive(:generate_message).with(:make, :blank, {})
-      car.errors.add_on_blank :make
-    end
-
-    it "add_on_blank generates message for multiple attributes" do
-      car = Car.new
-      car.errors.should_receive(:generate_message).with(:make, :blank, {})
-      car.errors.should_receive(:generate_message).with(:model, :blank, {})
-      car.errors.add_on_blank [:make, :model]
-    end
-
-    it "add_on_blank generates message with custom default message" do
-      car = Car.new
-      car.errors.should_receive(:generate_message).with(:make, :blank, { message: 'custom' })
-      car.errors.add_on_blank :make, message: 'custom'
     end
   end
 end
