@@ -18,7 +18,7 @@ module SimpleParams
     end
 
     def [](attribute)
-      get(attribute.to_sym) || set(attribute.to_sym, [])
+      super(attribute)
     end
 
     def []=(attribute, error)
@@ -56,6 +56,10 @@ module SimpleParams
 
     def full_messages
       map { |attribute, message| full_message(attribute, message) }
+    end
+
+    def to_a
+      full_messages
     end
 
     def to_hash(full_messages = false)
