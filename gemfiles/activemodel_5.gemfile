@@ -3,5 +3,6 @@
 source "https://rubygems.org"
 
 gem "activemodel", ">= 5.0"
+gem "shoulda-matchers", ">= 3.0"
 
 gemspec path: "../"

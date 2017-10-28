@@ -1,9 +1,9 @@
 PATH
   remote: ..
   specs:
-    simple_params (1.7.0)
+    simple_params (2.0.0)
       activemodel (>= 3.0, <= 6.0)
-      shoulda-matchers (~> 2.8)
+      shoulda-matchers (>= 2.8)
       virtus (>= 1.0.0)
 
 GEM
@@ -75,6 +75,7 @@ DEPENDENCIES
   pry
   rake (~> 10.1)
   rspec (~> 2.6)
+  shoulda-matchers (<= 3.0)
   simple_params!
 
 BUNDLED WITH
