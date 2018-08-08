@@ -6,7 +6,7 @@ module SimpleParams
 
       private
       def hash_to_symbolized_hash(hash)
-        hash.inject({}){|result, (key, value)|
+        hash.to_h.inject({}){|result, (key, value)|
           new_key = case key
                     when String then key.to_sym
                     else key
