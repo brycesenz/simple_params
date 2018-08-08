@@ -21,7 +21,7 @@ module SimpleParams
     end
 
     def class_instances
-      nested_class_hash.each_pair.inject([]) do |array, (key, value)|
+      nested_class_hash.each_pair.inject([]) do |array, (_key, value)|
         array << value
         array.flatten.compact
       end
