@@ -251,7 +251,7 @@ describe SimpleParams::Errors do
       person = Person.new
       person.errors.add(:name, "can not be blank")
       person.dog.errors.add(:breed, "can not be nil")
-      person.errors.to_hash.should eq({ 
+      person.errors.to_hash.should eq({
         name: ["can not be blank"],
         dog: {
           breed: ["can not be nil"]
@@ -265,7 +265,7 @@ describe SimpleParams::Errors do
       person.errors.add(:name, "can not be blank")
       person.dog.errors.add(:base, :invalid)
       person.dog.errors.add(:breed, "can not be nil")
-      person.errors.to_hash.should eq({ 
+      person.errors.to_hash.should eq({
         base: ["is invalid"],
         name: ["can not be blank"],
         dog: {
@@ -282,7 +282,7 @@ describe SimpleParams::Errors do
       person.dog.errors.add(:base, :invalid)
       person.dog.errors.add(:breed, "can not be nil")
       person.cats.first.errors.add(:name, "can not be blank")
-      person.errors.to_hash.should eq({ 
+      person.errors.to_hash.should eq({
         base: ["is invalid"],
         name: ["can not be blank"],
         dog: {
@@ -311,13 +311,13 @@ describe SimpleParams::Errors do
       person.errors[:name] = 'can not be nil'
       person.errors[:name].should eq(["can not be nil"])
       person.errors.as_json(full_messages: true).should eq({ name: ["name can not be nil"] })
-    end    
+    end
 
     it "handles nested attributes without full_messages" do
       person = Person.new
       person.errors[:name] = 'can not be nil'
       person.dog.errors[:breed] = 'is invalid'
-      person.errors.as_json.should eq({ 
+      person.errors.as_json.should eq({
         name: ["can not be nil"],
         dog: {
           breed: ["is invalid"]
@@ -329,7 +329,7 @@ describe SimpleParams::Errors do
       person = Person.new
       person.errors[:name] = 'can not be nil'
       person.dog.errors[:breed] = 'is invalid'
-      person.errors.as_json(full_messages: true).should eq({ 
+      person.errors.as_json(full_messages: true).should eq({
         name: ["name can not be nil"],
         dog: {
           breed: ["breed is invalid"]

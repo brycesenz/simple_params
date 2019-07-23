@@ -43,7 +43,7 @@ module SimpleParams
       super &&
       nested_instances.all? { |i| i.errors.empty? }
     end
-    alias_method :blank?, :empty? 
+    alias_method :blank?, :empty?
 
     def include?(attribute)
       if nested_attribute?(attribute)
@@ -52,7 +52,7 @@ module SimpleParams
         messages[attribute].present?
       end
     end
-    alias_method :has_key?, :include? 
+    alias_method :has_key?, :include?
     alias_method :key?, :include?
 
     def values
@@ -62,7 +62,7 @@ module SimpleParams
 
     def full_messages
       parent_messages = map { |attribute, message| full_message(attribute, message) }
-      nested_messages = nested_instances.map do |i| 
+      nested_messages = nested_instances.map do |i|
         i.errors.full_messages.map { |message| "#{i.parent_attribute_name} " + message }
       end
 
@@ -77,7 +77,7 @@ module SimpleParams
       msgs = get_messages(self, full_messages)
 
       @nested_classes.map do |attribute, klass|
-        nested_msgs = run_or_mapped_run(klass) do |k| 
+        nested_msgs = run_or_mapped_run(klass) do |k|
           unless k.nil?
             get_messages(k.errors, full_messages)
           end
@@ -113,12 +113,13 @@ module SimpleParams
     end
 
     def get_messages(object, full_messages = false)
+      valid_messages = object.messages.reject { |key, val| empty_messages?(val) }
       if full_messages
-        object.messages.each_with_object({}) do |(attribute, array), messages|
+        valid_messages.each_with_object({}) do |(attribute, array), messages|
           messages[attribute] = array.map { |message| object.full_message(attribute, message) }
         end
       else
-        object.messages.dup
+        valid_messages
       end
     end
 

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class RailsIntegrationParams < SimpleParams::Params
   with_rails_helpers
-  
+
   param :name
   param :age, type: :integer, optional: true, validations: { inclusion: { in: 18..100 } }
   param :current_time, type: :datetime, optional: true
@@ -97,6 +97,32 @@ describe SimpleParams::Params do
 
     specify "setting datetime to nil" do
       expect(params.current_time).to eq(nil)
+    end
+  end
+
+  context "with missing required params" do
+    let!(:params) do
+      RailsIntegrationParams.new(
+          name: "Tom",
+          age: 21,
+      )
+    end
+
+    specify "correct error output" do
+      params.valid?
+      expected = {
+          :address => {
+              :street => ["can't be blank"],
+              :city => ["is too short (minimum is 4 characters)", "can't be blank"]
+          },
+          :dogs => [
+              {
+                  :name => ["can't be blank"],
+                  :age => ["is not included in the list", "can't be blank"]
+              }
+          ]
+      }
+      expect(params.errors.to_hash).to eq(expected)
     end
   end
 end
