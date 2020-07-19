@@ -22,3 +22,8 @@ appraise 'activemodel-5_2' do
   gem 'activemodel', '>= 5.2'
   gem 'shoulda-matchers', '>= 3.0'
 end
+
+appraise 'activemodel-6_0' do
+  gem 'activemodel', '>= 6.0'
+  gem 'shoulda-matchers', '>= 3.0'
+end

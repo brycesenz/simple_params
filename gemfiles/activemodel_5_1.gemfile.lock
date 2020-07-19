@@ -1,8 +1,8 @@
 PATH
-  remote: ../
+  remote: ..
   specs:
-    simple_params (2.0.2)
-      activemodel (>= 3.0, <= 6.0)
+    simple_params (2.0.3)
+      activemodel (>= 3.0, <= 7.0)
       shoulda-matchers (>= 2.8)
       virtus (>= 1.0.0)
 
@@ -67,9 +67,12 @@ PLATFORMS
 DEPENDENCIES
   activemodel (>= 5.1)
   appraisal
-  bundler (~> 1.5)
+  bundler (>= 1.5)
   pry
-  rake (~> 10.1)
-  rspec (~> 2.6)
+  rake (>= 10.1)
+  rspec (>= 2.6)
   shoulda-matchers (>= 3.0)
   simple_params!
+
+BUNDLED WITH
+   2.1.4
